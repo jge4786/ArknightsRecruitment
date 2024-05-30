@@ -454,7 +454,9 @@ private var selectedTag = 0
                     flexWrap = FlexWrap.WRAP
                 }
 
-                listView.adapter = ItemAdapter(it.value.toList().sortedByDescending { it.rarity })
+                val key = it.key
+
+                listView.adapter = ItemAdapter(it.value.toList().filter{ !(key and 2048 != 2048 && it.rarity == "6") }.sortedByDescending { it.rarity })
 
                 itemLinearLayout.addView(listView)
             }
