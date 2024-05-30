@@ -1,3 +1,18 @@
+//Copyright [2024] [야호]
+//
+//Licensed under the Apache License, Version 2.0 (the "License");
+//you may not use this file except in compliance with the License.
+//You may obtain a copy of the License at
+//
+//http://www.apache.org/licenses/LICENSE-2.0
+//
+//Unless required by applicable law or agreed to in writing, software
+//distributed under the License is distributed on an "AS IS" BASIS,
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//See the License for the specific language governing permissions and
+//limitations under the License.
+
+
 package com.jge.testapp2
 
 import androidx.appcompat.app.AppCompatActivity
@@ -36,23 +51,8 @@ class MainActivity : AppCompatActivity() {
 
         projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
-        val mlkitButton = this.findViewById<Button>(R.id.mlkitButton)
-        val flexboxButton = this.findViewById<Button>(R.id.flexboxButton)
-        val gsonButton = this.findViewById<Button>(R.id.gsonButton)
 
-        flexboxButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/flexbox-layout"))
-            startActivity(ii)
-        }
-        mlkitButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://developers.google.com/ml-kit/vision/text-recognition/v2/android?hl=ko"))
-            startActivity(ii)
-        }
-        gsonButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/gson"))
-            startActivity(ii)
-        }
-
+        setLicenseButton()
 
         Loader.readJsonFile(this, "opData.json")
 
@@ -69,7 +69,40 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    fun setLicenseButton() {
 
+        val mlkitButton = this.findViewById<Button>(R.id.mlkitButton)
+        val flexboxButton = this.findViewById<Button>(R.id.flexboxButton)
+        val gsonButton = this.findViewById<Button>(R.id.gsonButton)
+        val mlkitLisenceButton = this.findViewById<Button>(R.id.mlkitLicenseButton)
+        val flexboxLisenceButton = this.findViewById<Button>(R.id.flexboxLicenseButton)
+        val gsonLisenceButton = this.findViewById<Button>(R.id.gsonLicenseButton)
+
+        flexboxButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/flexbox-layout"))
+            startActivity(ii)
+        }
+        mlkitButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://developers.google.com/ml-kit/vision/text-recognition/v2/android?hl=ko"))
+            startActivity(ii)
+        }
+        gsonButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/gson"))
+            startActivity(ii)
+        }
+        flexboxLisenceButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/google/flexbox-layout/main/LICENSE"))
+            startActivity(ii)
+        }
+        mlkitLisenceButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://developers.google.com/ml-kit/terms"))
+            startActivity(ii)
+        }
+        gsonLisenceButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/google/gson/main/LICENSE"))
+            startActivity(ii)
+        }
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

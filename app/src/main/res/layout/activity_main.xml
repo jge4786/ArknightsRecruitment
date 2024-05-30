@@ -7,43 +7,76 @@
         android:id="@+id/buttonShowOverlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="시작"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true"
+        android:text="시작" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            >
+            android:orientation="vertical">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="사용한 라이브러리"
-                />
+                android:text="사용한 라이브러리" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
                 <Button
                     android:id="@+id/mlkitButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Android ML Kit"
-                    />
+                    android:text="Android ML Kit" />
+
+                <Button
+                    android:id="@+id/mlkitLicenseButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="라이센스" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
                 <Button
                     android:id="@+id/flexboxButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="flexbox-layout"
-                />
+                    android:text="flexbox-layout" />
+
+                <Button
+                    android:id="@+id/flexboxLicenseButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="라이센스" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
                 <Button
                     android:id="@+id/gsonButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="gson"
-                />
+                    android:text="gson" />
 
+                <Button
+                    android:id="@+id/gsonLicenseButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="라이센스" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
