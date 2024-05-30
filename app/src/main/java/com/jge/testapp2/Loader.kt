@@ -1,4 +1,4 @@
-package com.example.testapp2
+package com.jge.testapp2
 
 import android.app.Service
 import android.content.Context

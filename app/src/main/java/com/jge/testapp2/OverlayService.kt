@@ -1,4 +1,4 @@
-package com.example.testapp2
+package com.jge.testapp2
 import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -9,7 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.app.*
-import android.content.Context
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.hardware.display.DisplayManager
@@ -17,11 +17,11 @@ import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.DisplayMetrics
 import android.util.Log
-import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Button
@@ -31,7 +31,6 @@ import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.allViews
-import androidx.core.view.marginRight
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -39,6 +38,7 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
+import com.google.mlkit.vision.text.Text.Line
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import kotlin.math.absoluteValue
@@ -64,6 +64,7 @@ class OverlayService : Service() {
 
     private lateinit var tagLinearLayout: LinearLayout
     private lateinit var activeTagLinearLayout: LinearLayout
+    private var isLoading: Boolean = false
 
 private var selectedTag = 0
 
@@ -391,7 +392,7 @@ private var selectedTag = 0
 // LinearLayout 생성
 
             val tmp = it.value.filter { it_ ->
-                it_.rarity == "3"
+                it_.rarity == "3" || it_.rarity == "2"
             }
 
             if (tmp.isEmpty()) {
@@ -453,7 +454,7 @@ private var selectedTag = 0
                     flexWrap = FlexWrap.WRAP
                 }
 
-                listView.adapter = ItemAdapter(it.value.toList().map { it.name })
+                listView.adapter = ItemAdapter(it.value.toList().sortedByDescending { it.rarity })
 
                 itemLinearLayout.addView(listView)
             }
@@ -515,9 +516,9 @@ private var selectedTag = 0
             val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
 
             val builder = NotificationCompat.Builder(this, "default")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Foreground Servic2e")
-                .setContentText("포그라운드 서비스2")
+                .setSmallIcon(R.mipmap.appicon)
+                .setContentTitle("공채도우미 작동 중")
+                .setContentText("알림을 실수로 종료할 경우 설정 -> 앱 -> 강제종료")
                 .setContentIntent(pendingIntent) // 알림 클릭 시 이동
                 .setOngoing(true)
 
@@ -528,6 +529,13 @@ private var selectedTag = 0
         }
 
         windowManager.addView(overlayView, params)
+    }
+
+    fun setLoading(isLoading: Boolean) {
+        val overlayView1: View = overlayView.findViewById(R.id.overlayView)
+        val overlayButton: Button = overlayView1.findViewById(R.id.overlayButton)
+
+        overlayButton.text = if (isLoading) { "•••" } else { "인식" }
     }
 
     fun addEvents(params:  WindowManager.LayoutParams) {
@@ -591,9 +599,9 @@ private var selectedTag = 0
                     val diffX = (event.rawX - initialTouchX).toInt().absoluteValue
                     val diffY = (event.rawY - initialTouchY).toInt().absoluteValue
                     if (diffX < 10 && diffY < 10) {
+
+                        setLoading(true)
                         captureScreenAndRecognizeText()
-                        overlayView1.visibility = View.GONE
-                        overlayView2.visibility = View.VISIBLE
                     }
 
                     true
@@ -602,7 +610,33 @@ private var selectedTag = 0
             }
         }
 
+//        val btnLayout: LinearLayout = overlayView2.findViewById<LinearLayout?>(R.id.btnLayout)
+//        btnLayout.setOnTouchListener { _, event ->
+//            when (event.action) {
+//                MotionEvent.ACTION_DOWN -> {
+//                    // Remember the initial position.
+//                    initialX = params.x
+//                    initialY = params.y
+//
+//                    // Get the touch location
+//                    initialTouchX = event.rawX
+//                    initialTouchY = event.rawY
+//                    true
+//                }
+//                MotionEvent.ACTION_MOVE -> {
+//                    // Calculate the new X and Y coordinates of the view.
+//                    params.x = initialX + (event.rawX - initialTouchX).toInt()
+//                    params.y = initialY + (event.rawY - initialTouchY).toInt()
+//println("뭣btnLayout")
+//                    // Update the layout with new X & Y coordinate
+//                    windowManager.updateViewLayout(overlayView, params)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
         val overlayCloseButton: Button = overlayView2.findViewById(R.id.overlayCloseButton)
+        val appCloseButton: Button = overlayView2.findViewById(R.id.appCloseButton)
         overlayCloseButton.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -619,7 +653,7 @@ private var selectedTag = 0
                     // Calculate the new X and Y coordinates of the view.
                     params.x = initialX + (event.rawX - initialTouchX).toInt()
                     params.y = initialY + (event.rawY - initialTouchY).toInt()
-
+                    println("뭣overlayCloseButton")
                     // Update the layout with new X & Y coordinate
                     windowManager.updateViewLayout(overlayView, params)
                     true
@@ -629,7 +663,6 @@ private var selectedTag = 0
                     val diffX = (event.rawX - initialTouchX).toInt().absoluteValue
                     val diffY = (event.rawY - initialTouchY).toInt().absoluteValue
                     if (diffX < 10 && diffY < 10) {
-
                         activeTagLinearLayout.allViews.forEach {
                             if (it is TextView) {
                                 it.visibility = View.GONE
@@ -646,6 +679,40 @@ private var selectedTag = 0
                         overlayView1.visibility = View.VISIBLE
                         overlayView2.visibility = View.GONE
 
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+        appCloseButton.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Remember the initial position.
+                    initialX = params.x
+                    initialY = params.y
+
+                    // Get the touch location
+                    initialTouchX = event.rawX
+                    initialTouchY = event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    // Calculate the new X and Y coordinates of the view.
+                    params.x = initialX + (event.rawX - initialTouchX).toInt()
+                    params.y = initialY + (event.rawY - initialTouchY).toInt()
+                    println("뭣appCloseButton")
+                    // Update the layout with new X & Y coordinate
+                    windowManager.updateViewLayout(overlayView, params)
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val diffX = (event.rawX - initialTouchX).toInt().absoluteValue
+                    val diffY = (event.rawY - initialTouchY).toInt().absoluteValue
+                    if (diffX < 10 && diffY < 10) {
+                        val ii = Intent(this, ExitActivity::class.java)
+                            ii.addFlags(FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(ii)
                     }
                     true
                 }
@@ -769,6 +836,12 @@ private var selectedTag = 0
             }
 
             onTagClick(resultViews)
+
+            setLoading(false)
+            val overlayView1: View = overlayView.findViewById(R.id.overlayView)
+            overlayView1.visibility = View.GONE
+            resultView.visibility = View.VISIBLE
+
         }.addOnFailureListener { e ->
             Log.e("OverlayService", "Text recognition failed", e)
         }

@@ -1,4 +1,4 @@
-package com.example.testapp2
+package com.jge.testapp2
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,7 +7,11 @@ import android.net.Uri
 import android.provider.Settings
 import android.widget.Button
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,7 +25,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.TIRAMISU && PackageManager.PERMISSION_DENIED == ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)) {
 
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                5
+            )
+        }
 
         projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
