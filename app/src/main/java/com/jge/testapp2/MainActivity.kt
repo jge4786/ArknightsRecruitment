@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
         setLicenseButton()
 
-        Loader.readJsonFile(this, "opData.json")
+        Loader.readData(this, this.getPreferences(0), "opData.json")
 
         val buttonShowOverlay: Button = findViewById(R.id.buttonShowOverlay)
         buttonShowOverlay.setOnClickListener {
@@ -70,7 +70,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     fun setLicenseButton() {
-
         val mlkitButton = this.findViewById<Button>(R.id.mlkitButton)
         val flexboxButton = this.findViewById<Button>(R.id.flexboxButton)
         val gsonButton = this.findViewById<Button>(R.id.gsonButton)

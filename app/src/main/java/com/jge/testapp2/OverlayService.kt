@@ -801,7 +801,11 @@ private var selectedTag = 0
                     resultViews.add(resultTextView)
                 } else {
                     if (blockText.contains("고급")) {
-                        resultTextView = linearLayout.findViewById(R.id.rhxmrco)
+                        resultTextView = linearLayout.findViewById(R.id.rhxmrco) /* 고특채 보정 */
+
+                        resultViews.add(resultTextView)
+                    } else if (blockText.contains("가드") && blockText.length > 2) { /* 뱅가드 보정 */
+                        resultTextView = linearLayout.findViewById((R.id.qodrkem))
 
                         resultViews.add(resultTextView)
                     }

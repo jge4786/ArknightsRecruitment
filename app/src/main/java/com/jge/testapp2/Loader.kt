@@ -2,9 +2,11 @@ package com.jge.testapp2
 
 import android.app.Service
 import android.content.Context
+import android.content.SharedPreferences
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 
 data class Item(
@@ -18,7 +20,41 @@ class Loader {
     companion object {
         lateinit var data: List<Item>
 
-        fun readJsonFile(context: Context, fileName: String) {
+        fun readData(context: Context,  pref: SharedPreferences, fileName: String) {
+            val localData = readLocalData(pref)
+
+            if (localData != null) {
+                data = localData
+                println("로컬 데이터 로드 성공" + data)
+            } else {
+                val jsonData = readJsonFile(context, fileName)
+                data = jsonData
+                println("JSON 데이터 로드 성공" + data)
+                writeData(pref)
+            }
+        }
+
+        fun writeData(pref: SharedPreferences) {
+            val editor = pref.edit()
+            val json = GsonBuilder().create().toJson(data)
+            editor.putString("opData", json)
+            editor.apply()
+            println("데이터 저장 성공" + json)
+        }
+
+        fun readLocalData(pref: SharedPreferences): List<Item>? {
+            val rawPref = pref.getString("opData", null)
+            var result: List<Item>? = null
+
+            if(rawPref != null && rawPref != "[]"){
+                result = GsonBuilder().create().fromJson(
+                    rawPref, object: TypeToken<ArrayList<Item>>(){}.type
+                )
+            }
+            return result
+        }
+
+        fun readJsonFile(context: Context, fileName: String): List<Item> {
             val inputStream = context.assets.open(fileName)
             val reader = BufferedReader(InputStreamReader(inputStream))
             val stringBuilder = StringBuilder()
@@ -28,7 +64,7 @@ class Loader {
                 line = reader.readLine()
             }
             val listType = object : TypeToken<List<Item>>() {}.type
-            data = Gson().fromJson(stringBuilder.toString(), listType)
+            return Gson().fromJson(stringBuilder.toString(), listType)
         }
 
         fun tagToArray(tag: Int): List<String> {
