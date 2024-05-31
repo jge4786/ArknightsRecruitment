@@ -6,26 +6,34 @@
     android:layout_marginVertical="50dp"
     >
 
-        <Button
-            android:id="@+id/overlayCloseButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="7dp"
-            android:text="-" />
+    <Button
+        android:id="@+id/overlayCloseButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_background"
+        android:text="-"
+        android:textAlignment="center" />
 
-        <Button
-            android:id="@+id/appCloseButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="7dp"
-            android:text="X" />
+    <Button
+        android:id="@+id/appCloseButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_background"
+        android:text="x"
+        android:textAlignment="center" />
+
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/mainScrollView"
         android:scrollbars="none"
+        android:clickable="false"
         >
         <LinearLayout
             android:layout_width="match_parent"
@@ -35,7 +43,7 @@
             <View
                 android:background="#00FFFFFF"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="60dp"
                 />
 
             <HorizontalScrollView
@@ -726,7 +734,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#00F"
+                android:background="#DADADA"
                 android:layout_margin="6dp"
                 />
 
@@ -749,4 +757,11 @@
         </LinearLayout>
     </ScrollView>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:id="@+id/dragView"
+        android:background="@drawable/drag_bar"
+        android:layout_alignParentTop="true"
+        />
 </RelativeLayout>
