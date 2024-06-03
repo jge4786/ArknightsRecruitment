@@ -25,8 +25,17 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.MotionEvent
+import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,6 +45,53 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var projectionManager: MediaProjectionManager
+
+    fun onClickNewVersion() {
+        val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
+        newVersionTextView.text = " 받아오는 중"
+
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+                Loader.getOpData()
+            }
+
+            val dvt = findViewById<TextView>(R.id.dataVersionText)
+            dvt.text = Loader.newVersion
+
+            newVersionTextView.text = ""
+        }
+    }
+
+    fun getVersionData() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val data = withContext(Dispatchers.IO) {
+                    Loader.getVersionData()
+                }
+
+                val newVersion = data.getString("dataVersion")
+
+                val dvt = findViewById<TextView>(R.id.dataVersionText)
+                dvt.text = Loader.currentVersion
+
+                if (Loader.currentVersion.compareTo(newVersion) != 0) {
+                    Loader.newVersion = newVersion
+                    val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
+                    newVersionTextView.text = " ※새로운 버전이 있습니다."
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+            }
+        }
+    }
+
+    private suspend fun loadData() {
+        withContext(Dispatchers.IO) {
+            Loader.loadData(this@MainActivity)
+        }
+        getVersionData()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,12 +105,27 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        Pref.shared.preferences = this.getSharedPreferences("data", 0)
+
         projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
 
         setLicenseButton()
 
-        Loader.readData(this, this.getPreferences(0), "opData.json")
+        val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
+        newVersionTextView.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_UP -> {
+                    onClickNewVersion()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        CoroutineScope(Dispatchers.Main).launch() {
+            loadData()
+        }
 
         val buttonShowOverlay: Button = findViewById(R.id.buttonShowOverlay)
         buttonShowOverlay.setOnClickListener {

@@ -2,12 +2,17 @@ package com.jge.testapp2
 
 import android.app.Service
 import android.content.Context
-import android.content.SharedPreferences
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import org.json.JSONObject
+import java.io.IOException
+import java.lang.Exception
+import java.net.HttpURLConnection
+import java.net.URL
+
 
 data class Item(
     val tag: Int,
@@ -19,40 +24,57 @@ data class Item(
 class Loader {
     companion object {
         lateinit var data: List<Item>
+        lateinit var currentVersion: String
+        lateinit var newVersion: String
 
-        fun readData(context: Context,  pref: SharedPreferences, fileName: String) {
-            val localData = readLocalData(pref)
+        fun loadData(context: Context) {
+            val rawPref = Pref.shared.preferences.getString("opData", null)
+            currentVersion = Pref.shared.preferences.getString("opVersion", null).toString()
 
-            if (localData != null) {
-                data = localData
-                println("로컬 데이터 로드 성공" + data)
-            } else {
-                val jsonData = readJsonFile(context, fileName)
-                data = jsonData
-                println("JSON 데이터 로드 성공" + data)
-                writeData(pref)
+            if (currentVersion == "null") {
+                loadDefaultVersion(context)
             }
-        }
-
-        fun writeData(pref: SharedPreferences) {
-            val editor = pref.edit()
-            val json = GsonBuilder().create().toJson(data)
-            editor.putString("opData", json)
-            editor.apply()
-            println("데이터 저장 성공" + json)
-        }
-
-        fun readLocalData(pref: SharedPreferences): List<Item>? {
-            val rawPref = pref.getString("opData", null)
-            var result: List<Item>? = null
 
             if(rawPref != null && rawPref != "[]"){
-                result = GsonBuilder().create().fromJson(
-                    rawPref, object: TypeToken<ArrayList<Item>>(){}.type
-                )
+                try {
+                    data = GsonBuilder().create().fromJson(
+                        rawPref, object : TypeToken<ArrayList<Item>>() {}.type
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                data = readJsonFile(context, "opData.json")
+                writeData()
             }
-            return result
+
         }
+
+        fun writeData() {
+            val editor = Pref.shared.preferences.edit()
+            val json = GsonBuilder().create().toJson(data)
+            editor.putString("opData", json)
+
+            editor.apply()
+        }
+
+        private fun loadDefaultVersion(context: Context) {
+            val inputStream = context.assets.open("defaultVersion.json")
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val stringBuilder = StringBuilder()
+            var line: String? = reader.readLine()
+            while (line != null) {
+                stringBuilder.append(line)
+                line = reader.readLine()
+            }
+            reader.close()
+            inputStream.close()
+
+            val jsonString = stringBuilder.toString()
+            val jsonObject = JSONObject(jsonString)
+            currentVersion = jsonObject.getString("dataVersion")
+        }
+
 
         fun readJsonFile(context: Context, fileName: String): List<Item> {
             val inputStream = context.assets.open(fileName)
@@ -157,6 +179,47 @@ class Loader {
         }
 
         public var serv: Service? = null
+
+
+        private val versionUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/Versions.json"
+        private val opUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/opData.json"
+        @Throws(IOException::class)
+        fun getVersionData(): JSONObject {
+            val url = URL(versionUrl)
+            val connection = url.openConnection() as HttpURLConnection
+            val resultData = try {
+                connection.inputStream.bufferedReader().readText()
+            } finally {
+                connection.disconnect()
+            }
+
+            return JSONObject(resultData)
+        }
+
+        @Throws(IOException::class)
+        fun getOpData() {
+            val url = URL(opUrl)
+            val connection = url.openConnection() as HttpURLConnection
+            val resultData = try {
+                connection.inputStream.bufferedReader().readText()
+            } finally {
+                connection.disconnect()
+            }
+
+            data = GsonBuilder().create().fromJson(
+                resultData, object: TypeToken<ArrayList<Item>>(){}.type
+            )
+
+            val editor = Pref.shared.preferences.edit()
+
+            editor.putString("opData", resultData)
+            try {
+                editor.putString("opVersion", newVersion)
+                editor.apply()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
 }

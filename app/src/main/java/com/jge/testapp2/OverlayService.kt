@@ -56,9 +56,7 @@ class OverlayService : Service() {
     private var initialTouchX = 0f
     private var initialTouchY = 0f
 
-    private var CHANNEL_ID = "ExampleChannel"
     private var NOTI_ID = 1
-    private var notificationManager: NotificationManager? = null
 
     private lateinit var mediaProjection: MediaProjection
     private lateinit var virtualDisplay: VirtualDisplay
@@ -67,7 +65,6 @@ class OverlayService : Service() {
 
     private lateinit var tagLinearLayout: LinearLayout
     private lateinit var activeTagLinearLayout: LinearLayout
-    private var isLoading: Boolean = false
 
 private var selectedTag = 0
 
@@ -75,89 +72,18 @@ private var selectedTag = 0
         return null
     }
 
-    fun makeBit(tags: List<Int>): Int {
-        return  tags.fold(0) { acc, tag -> acc or (1 shl tag) }
-    }
-
-    fun <T> combinations(array: List<T>): List<List<T>> {
-        val allCombinations = mutableListOf<List<T>>()
-        val n = array.size
-        // 2^n 가지의 부분집합을 생성합니다.
-        val totalCombinations = 1 shl n
-
-        for (i in 0 until totalCombinations) {
-            val combination = mutableListOf<T>()
-            for (j in 0 until n) {
-                // i의 j번째 비트가 1인지 확인합니다.
-                if ((i and (1 shl j)) != 0) {
-                    combination.add(array[j])
-                }
-            }
-            if (!combination.isEmpty()) {
-                allCombinations.add(combination)
-            }
-        }
-
-        return allCombinations
-    }
-
-    fun last(targetTag: Int, givenTags: List<Int>): Set<Int> {
-        val result: MutableSet<Int> = mutableSetOf()
-        for (comb in combinations(givenTags)) {
-            val bit = makeBit(comb)
-
-            if (canCreateTags2(targetTag, bit)) {
-                result.add(bit)
-            }
-        }
-
-        return result
-    }
-
-    fun canCreateTags2(targetTag: Int, availableTags: Int) : Boolean {
-        val result = ((targetTag and availableTags) == availableTags)
-
-        return result
-    }
-
-    fun test(givenTags: Int): Map<Int, Set<Item>> {
-        return test(Loader.convert(givenTags))
-    }
-
-    fun test(givenTags: List<Int> ): Map<Int, Set<Item>> {
-        var result: MutableMap<Int, Set<Item>> = mutableMapOf()
-
-        val data = Loader.data
-
-        for(element in data) {
-
-            val key: Int = element.tag
-
-            val res = last(key, givenTags)
-
-            if (res.isNotEmpty()) {
-                res.forEach {
-                    if (result.containsKey(it)) {
-                        val existingValues = result[it] ?: emptySet()
-                        result[it] = existingValues + element
-                    } else {
-                        result[it] = setOf(element)
-                    }
-                }
-            }
-        }
-
-        return result
-    }
-
+    /* 인식 결과로 한번에 여러 개의 태그 데이터 들어올 경우 */
     private fun onTagClick(selectedTextView: List<TextView>) {
         selectedTextView.forEach {
             onTagClick(it)
         }
 
-        makeList(test(selectedTag))
+        val calculatror = Calculatror()
+
+        makeList(calculatror.getResultData(selectedTag))
     }
 
+    /* 태그 하나씩 누를 경우 */
     private fun onTagClick(selectedTextViwe: TextView) {
         val tag = Loader.tagToInt(selectedTextViwe.text.toString())
         val isActive = selectedTag and tag == tag
@@ -171,6 +97,7 @@ private var selectedTag = 0
         }
     }
 
+    /* 태그 눌렀을 때 숨김 처리 */
     private fun getTextView(text: String, isActive: Boolean) {
         var view: TextView?
         var activeView: TextView?
@@ -330,7 +257,7 @@ private var selectedTag = 0
         }
     }
 
-
+    /* 이벤트 달기 */
     fun addButton() {
         tagLinearLayout = overlayView.findViewById<LinearLayout>(R.id.tagLinearLayout)
         activeTagLinearLayout = overlayView.findViewById<LinearLayout>(R.id.activeTagLinearLayout)
@@ -338,7 +265,6 @@ private var selectedTag = 0
         for (i in 0 until tagLinearLayout.childCount) {
             val textView = tagLinearLayout.getChildAt(i) as TextView
 
-            // Set an OnClickListener for each TextView
             textView.setOnClickListener {
                 onTagClick(listOf( it as TextView))
             }
@@ -346,7 +272,6 @@ private var selectedTag = 0
         for (i in 0 until activeTagLinearLayout.childCount) {
             val textView = activeTagLinearLayout.getChildAt(i) as TextView
 
-            // Set an OnClickListener for each TextView
             textView.setOnClickListener {
                 onTagClick(listOf(it as TextView))
             }
@@ -354,11 +279,14 @@ private var selectedTag = 0
 
     }
 
+    /* 최소화할 때 데이터 날리기 */
     fun clearList() {
         val itemLinearLayout = overlayView.findViewById<LinearLayout>(R.id.itemLinearLayout)
 
         itemLinearLayout.removeAllViews()
     }
+
+    /* 결과 데이터로 목록 만들기 */
     fun makeList(items: Map<Int, Set<Item>>) {
 
         clearList()
@@ -367,12 +295,12 @@ private var selectedTag = 0
             val second = entry.second
 
             when {
-                first and 2048 == 2048 -> 0
-                first and 16384 == 16384 -> 1
+                first and 2048 == 2048 -> 0     // 고특채
+                first and 16384 == 16384 -> 1   //특채
                 else -> 2
             }
         }.thenByDescending { entry ->
-            entry.second.maxByOrNull { it.rarity.toInt() }?.rarity ?: 0
+            entry.second.maxByOrNull { it.rarity.toInt() }?.rarity ?: 0 // 결과 데이터 최고치로 정렬
         }.thenBy { it.first }
 
 
@@ -382,6 +310,7 @@ private var selectedTag = 0
 
         sortedMap.forEach {
 
+            // 3성과 2성이 포함된 데이터는 제외
             val tmp = it.value.filter { it_ ->
                 it_.rarity == "3" || it_.rarity == "2"
             }
@@ -446,6 +375,8 @@ private var selectedTag = 0
 
                 val key = it.key
 
+                // filter: 고특채 아닐 경우 6성 데이터 제외
+                // sort: 희귀도 순 정렬
                 listView.adapter = ItemAdapter(it.value.toList().filter{ !(key and 2048 != 2048 && it.rarity == "6") }.sortedByDescending { it.rarity })
 
                 itemLinearLayout.addView(listView)
@@ -460,7 +391,6 @@ private var selectedTag = 0
         val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         overlayView = inflater.inflate(R.layout.overlay_main_view, null)
 
-//        makeList(test(listOf(11, 1)))
         val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
