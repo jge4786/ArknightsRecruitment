@@ -11,8 +11,8 @@ android {
         applicationId "com.jge.testapp2"
         minSdk 31
         targetSdk 33
-        versionCode 6
-        versionName "0.31"
+        versionCode 7
+        versionName "0.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
