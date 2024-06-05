@@ -24,11 +24,16 @@ import android.widget.Button
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
+import android.opengl.Visibility
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TableLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -48,6 +53,7 @@ class MainActivity : AppCompatActivity() {
 
     fun onClickNewVersion() {
         val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
+        val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
         newVersionTextView.text = " 받아오는 중"
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -58,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             val dvt = findViewById<TextView>(R.id.dataVersionText)
             dvt.text = Loader.newVersion
 
-            newVersionTextView.text = ""
+            newVersionView.visibility = View.GONE
         }
     }
 
@@ -76,8 +82,8 @@ class MainActivity : AppCompatActivity() {
 
                 if (Loader.currentVersion.compareTo(newVersion) != 0) {
                     Loader.newVersion = newVersion
-                    val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
-                    newVersionTextView.text = " ※새로운 버전이 있습니다."
+                    val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
+                    newVersionView.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -112,8 +118,8 @@ class MainActivity : AppCompatActivity() {
 
         setLicenseButton()
 
-        val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
-        newVersionTextView.setOnTouchListener { _, event ->
+        val updateButton = findViewById<TextView>(R.id.updateButton)
+        updateButton.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_UP -> {
                     onClickNewVersion()
@@ -141,12 +147,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
     fun setLicenseButton() {
-        val mlkitButton = this.findViewById<Button>(R.id.mlkitButton)
-        val flexboxButton = this.findViewById<Button>(R.id.flexboxButton)
-        val gsonButton = this.findViewById<Button>(R.id.gsonButton)
-        val mlkitLisenceButton = this.findViewById<Button>(R.id.mlkitLicenseButton)
-        val flexboxLisenceButton = this.findViewById<Button>(R.id.flexboxLicenseButton)
-        val gsonLisenceButton = this.findViewById<Button>(R.id.gsonLicenseButton)
+        val libraryButton = this.findViewById<TextView>(R.id.libraryButtn)
+
+        libraryButton.setOnClickListener {
+            val ll = this.findViewById<TableLayout>(R.id.libraryList)
+            val lc = this.findViewById<ImageView>(R.id.libraryChevron)
+            val isHidden = ll.visibility == View.GONE
+            ll.visibility = if (isHidden) { View.VISIBLE } else { View.GONE }
+            lc.background = if (isHidden) { ContextCompat.getDrawable(this, R.drawable.up_chevron) } else {
+                ContextCompat.getDrawable(this, R.drawable.down_chevron)
+            }
+        }
+
+        val mlkitButton = this.findViewById<TextView>(R.id.mlkitView)
+        val flexboxButton = this.findViewById<TextView>(R.id.flexboxView)
+        val gsonButton = this.findViewById<TextView>(R.id.gsonView)
+        val mlkitLisenceButton = this.findViewById<TextView>(R.id.mlkitLicenseView)
+        val flexboxLisenceButton = this.findViewById<TextView>(R.id.flexboxLicenseView)
+        val gsonLisenceButton = this.findViewById<TextView>(R.id.gsonLicenseView)
 
         flexboxButton.setOnClickListener {
             val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/flexbox-layout"))

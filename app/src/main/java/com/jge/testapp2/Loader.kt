@@ -25,7 +25,7 @@ class Loader {
     companion object {
         lateinit var data: List<Item>
         lateinit var currentVersion: String
-        lateinit var newVersion: String
+        var newVersion: String = "0.0.0"
 
         fun loadData(context: Context) {
             val rawPref = Pref.shared.preferences.getString("opData", null)
@@ -73,6 +73,9 @@ class Loader {
             val jsonString = stringBuilder.toString()
             val jsonObject = JSONObject(jsonString)
             currentVersion = jsonObject.getString("dataVersion")
+            val editor = Pref.shared.preferences.edit()
+            editor.putString("opVersion", currentVersion)
+            editor.apply()
         }
 
 
