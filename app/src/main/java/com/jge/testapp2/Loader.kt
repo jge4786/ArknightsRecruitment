@@ -184,7 +184,7 @@ class Loader {
         public var serv: Service? = null
 
 
-        private val versionUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/Versions.json"
+        private val versionUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/Versions.json"
         private val opUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/opData.json"
         @Throws(IOException::class)
         fun getVersionData(): JSONObject {

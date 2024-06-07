@@ -54,8 +54,10 @@ class MainActivity : AppCompatActivity() {
     fun onClickNewVersion() {
         val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
         val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
+        val updateButton = findViewById<TextView>(R.id.updateButton)
         newVersionTextView.text = " 받아오는 중"
 
+        updateButton.visibility = View.GONE
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 Loader.getOpData()
