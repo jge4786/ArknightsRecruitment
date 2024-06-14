@@ -359,6 +359,7 @@ private var selectedTag = 0
 
 
                 val listView = RecyclerView(this).apply {
+                    overScrollMode = RecyclerView.OVER_SCROLL_NEVER
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
@@ -439,7 +440,7 @@ private var selectedTag = 0
 
             val builder = NotificationCompat.Builder(this, "default")
                 .setSmallIcon(R.mipmap.appicon)
-                .setContentTitle("공채도우미 작동 중")
+                .setContentTitle("공채계산기 작동 중")
                 .setContentText("알림 누르거나 결과 화면에서 X 버튼 누를 경우 앱 종료")
                 .setContentIntent(pendingIntent) // 알림 클릭 시 이동
                 .setOngoing(true)
