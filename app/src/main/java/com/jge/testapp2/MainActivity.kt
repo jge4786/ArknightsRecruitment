@@ -23,6 +23,7 @@ import android.provider.Settings
 import android.widget.Button
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.graphics.Paint
 import android.media.projection.MediaProjectionManager
 import android.opengl.Visibility
 import android.os.Build
@@ -119,6 +120,7 @@ class MainActivity : AppCompatActivity() {
 
 
         setLicenseButton()
+        setPolicyButton()
 
         val updateButton = findViewById<TextView>(R.id.updateButton)
         updateButton.setOnTouchListener { _, event ->
@@ -190,6 +192,15 @@ class MainActivity : AppCompatActivity() {
         }
         gsonLisenceButton.setOnClickListener {
             val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/google/gson/main/LICENSE"))
+            startActivity(ii)
+        }
+    }
+
+    fun setPolicyButton() {
+        val policyButton = this.findViewById<TextView>(R.id.policyButton)
+        policyButton.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+        policyButton.setOnClickListener {
+            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://sites.google.com/view/eunprivacypolicy"))
             startActivity(ii)
         }
     }

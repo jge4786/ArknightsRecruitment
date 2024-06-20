@@ -143,7 +143,19 @@
         </LinearLayout>
     </ScrollView>
 
+
+        <TextView
+            android:id="@+id/policyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="개인정보 처리방침"
+            android:textColor="@android:color/darker_gray"
+            android:layout_above="@+id/dataVView"
+            android:gravity="center"
+            />
+
     <LinearLayout
+        android:id="@+id/dataVView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
