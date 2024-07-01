@@ -10,7 +10,6 @@ import android.view.View
 import android.view.WindowManager
 import android.app.*
 import android.content.Context
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.hardware.display.DisplayManager
@@ -18,7 +17,6 @@ import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
-import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.DisplayMetrics
@@ -29,7 +27,6 @@ import android.widget.Button
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.allViews
@@ -40,7 +37,6 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
-import com.google.mlkit.vision.text.Text.Line
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import kotlin.math.absoluteValue
@@ -316,71 +312,79 @@ private var selectedTag = 0
             }
 
             if (tmp.isEmpty()) {
-                val linearLayout = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                }
-
-                val horizontalScrollView = HorizontalScrollView(this)
-                horizontalScrollView.layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                    .apply {
-                        bottomMargin = 6
-                    }
-
-                val drawable = ContextCompat.getDrawable(this, R.drawable.item_tag)
-
-
                 val tags = Loader.tagToArray(it.key)
 
-                tags.forEach {
+                if (tags.isNotEmpty()) {
+                    val key = it.key
 
-                    val tv = TextView(this).apply {
-                        text = it
-                        background = drawable
-                        setPadding(12,4,12,4)
-                        textSize = 12.0f
-                        setTextColor(Color.BLACK)
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            marginEnd = 8
-                        }
+                    val filteredList = it.value.toList().filter { !(key and 2048 != 2048 && it.rarity == "6") }.sortedByDescending { it.rarity }
+
+                    if (filteredList.isEmpty()) {
+                        return@forEach
                     }
 
-                    linearLayout.addView(tv)
-                }
 
-                horizontalScrollView.addView(linearLayout)
+                    val linearLayout = LinearLayout(this).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                    }
 
-                itemLinearLayout.addView(horizontalScrollView)
-
-
-                val listView = RecyclerView(this).apply {
-                    overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                    val horizontalScrollView = HorizontalScrollView(this)
+                    horizontalScrollView.layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
                     )
+                        .apply {
+                            bottomMargin = 6
+                        }
 
-                    val padding = resources.displayMetrics.density.toInt() * 20
-                    setPadding(0,0,0, padding)
+                    val drawable = ContextCompat.getDrawable(this, R.drawable.item_tag)
+
+
+
+                    tags.forEach {
+
+                        val tv = TextView(this).apply {
+                            text = it
+                            background = drawable
+                            setPadding(12, 4, 12, 4)
+                            textSize = 12.0f
+                            setTextColor(Color.BLACK)
+                            layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            ).apply {
+                                marginEnd = 8
+                            }
+                        }
+
+                        linearLayout.addView(tv)
+                    }
+
+                    horizontalScrollView.addView(linearLayout)
+
+                    itemLinearLayout.addView(horizontalScrollView)
+
+                    val listView = RecyclerView(this).apply {
+                        overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+
+                        val padding = resources.displayMetrics.density.toInt() * 20
+                        setPadding(0, 0, 0, padding)
+                    }
+
+                    listView.layoutManager = FlexboxLayoutManager(this).apply {
+                        flexDirection = FlexDirection.ROW
+                        flexWrap = FlexWrap.WRAP
+                    }
+
+                    // filter: 고특채 아닐 경우 6성 데이터 제외
+                    // sort: 희귀도 순 정렬
+                    listView.adapter = ItemAdapter(filteredList)
+                    itemLinearLayout.addView(listView)
                 }
-
-                listView.layoutManager = FlexboxLayoutManager(this).apply {
-                    flexDirection = FlexDirection.ROW
-                    flexWrap = FlexWrap.WRAP
-                }
-
-                val key = it.key
-
-                // filter: 고특채 아닐 경우 6성 데이터 제외
-                // sort: 희귀도 순 정렬
-                listView.adapter = ItemAdapter(it.value.toList().filter{ !(key and 2048 != 2048 && it.rarity == "6") }.sortedByDescending { it.rarity })
-
-                itemLinearLayout.addView(listView)
             }
         }
     }
