@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace 'com.jge.testapp2'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.jge.testapp2"
         minSdk 31
-        targetSdk 33
-        versionCode 10
-        versionName "0.81"
+        targetSdk 34
+        versionCode 16
+        versionName '0.85'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

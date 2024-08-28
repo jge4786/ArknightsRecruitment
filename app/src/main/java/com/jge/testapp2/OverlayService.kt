@@ -10,6 +10,7 @@ import android.view.View
 import android.view.WindowManager
 import android.app.*
 import android.content.Context
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.hardware.display.DisplayManager
@@ -66,6 +67,126 @@ private var selectedTag = 0
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+    private fun createNotification(): Notification {
+        // 알림 표시
+        val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                "default",
+                "기본 채널",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+        )
+
+        val notificationIntent = Intent(this, ExitActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(this, "default")
+            .setSmallIcon(R.mipmap.appicon)
+            .setContentTitle("공채계산기 작동 중")
+            .setContentText("알림 누르거나 결과 화면에서 X 버튼 누를 경우 앱 종료")
+            .setContentIntent(pendingIntent) // 알림 클릭 시 이동
+            .setOngoing(true)
+
+        val notification = builder.build()
+        notification.flags = Notification.FLAG_ONGOING_EVENT
+
+        return notification
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        overlayView = inflater.inflate(R.layout.overlay_main_view, null)
+
+        val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            )
+        }
+
+        params.gravity = Gravity.TOP or Gravity.START
+
+        addEvents(params)
+
+        addButton()
+
+        Loader.serv = this
+
+        windowManager.addView(overlayView, params)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        startForeground(NOTI_ID, createNotification(), FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
+
+        val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_OK) ?: Activity.RESULT_OK
+        val data = intent?.getParcelableExtra<Intent>("data")
+        val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
+
+        mediaProjection?.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                // MediaProjection이 중지되었을 때 리소스 해제
+                stopSelf()
+            }
+        }, null)
+
+        setupMediaProjection()
+
+
+        return START_NOT_STICKY
+    }
+
+    private fun setupMediaProjection() {
+        val metrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(metrics)
+
+        imageReader = ImageReader.newInstance(metrics.widthPixels, metrics.heightPixels, PixelFormat.RGBA_8888, 2)
+
+        val handlerThread = HandlerThread("ScreenCapture")
+        handlerThread.start()
+        handler = Handler(handlerThread.looper)
+
+        virtualDisplay = mediaProjection.createVirtualDisplay(
+            "OverlayService",
+            metrics.widthPixels,
+            metrics.heightPixels,
+            metrics.densityDpi,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            imageReader.surface,
+            object : VirtualDisplay.Callback() {
+                override fun onPaused() {
+                    // Handle pause
+                }
+
+                override fun onResumed() {
+                    // Handle resume
+                }
+
+                override fun onStopped() {
+                    // Handle stop
+                }
+            },
+            handler
+        )
     }
 
     /* 인식 결과로 한번에 여러 개의 태그 데이터 들어올 경우 */
@@ -284,21 +405,27 @@ private var selectedTag = 0
 
     /* 결과 데이터로 목록 만들기 */
     fun makeList(items: Map<Int, Set<Item>>) {
-
         clearList()
+
         val comparator = compareBy<Pair<Int, Set<Item>>> { entry ->
             val first = entry.first
-            val second = entry.second
 
             when {
                 first and 2048 == 2048 -> 0     // 고특채
-                first and 16384 == 16384 -> 1   //특채
+                first and 16384 == 16384 -> 1   // 특채
                 else -> 2
             }
         }.thenByDescending { entry ->
-            entry.second.maxByOrNull { it.rarity.toInt() }?.rarity ?: 0 // 결과 데이터 최고치로 정렬
-        }.thenBy { it.first }
-
+            entry.second.maxByOrNull {
+                var rarity = it.rarity.toInt()
+                rarity != 6
+            }?.rarity?.toInt() ?: 0 // 결과 데이터 최고치로 정렬
+        }.thenBy { entry ->
+            entry.second.minByOrNull {
+                val rarity = it.rarity.toInt()
+                rarity == 4 || rarity == 5 || rarity == 1
+            }?.rarity?.toInt() ?: 0 // 결과 데이터 최저치로 정렬
+        }
 
         val sortedMap = items.toList().sortedWith(comparator).toMap()
 
@@ -317,12 +444,13 @@ private var selectedTag = 0
                 if (tags.isNotEmpty()) {
                     val key = it.key
 
-                    val filteredList = it.value.toList().filter { !(key and 2048 != 2048 && it.rarity == "6") }.sortedByDescending { it.rarity }
+                    val filteredList = it.value.toList()
+                        .filter { !(key and 2048 != 2048 && it.rarity == "6") }
+                        .sortedByDescending { it.rarity }
 
                     if (filteredList.isEmpty()) {
                         return@forEach
                     }
-
 
                     val linearLayout = LinearLayout(this).apply {
                         orientation = LinearLayout.HORIZONTAL
@@ -332,14 +460,11 @@ private var selectedTag = 0
                     horizontalScrollView.layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                        .apply {
-                            bottomMargin = 6
-                        }
+                    ).apply {
+                        bottomMargin = 6
+                    }
 
                     val drawable = ContextCompat.getDrawable(this, R.drawable.item_tag)
-
-
 
                     tags.forEach {
 
@@ -380,8 +505,6 @@ private var selectedTag = 0
                         flexWrap = FlexWrap.WRAP
                     }
 
-                    // filter: 고특채 아닐 경우 6성 데이터 제외
-                    // sort: 희귀도 순 정렬
                     listView.adapter = ItemAdapter(filteredList)
                     itemLinearLayout.addView(listView)
                 }
@@ -389,74 +512,6 @@ private var selectedTag = 0
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        overlayView = inflater.inflate(R.layout.overlay_main_view, null)
-
-        val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-            )
-        }
-
-        params.gravity = Gravity.TOP or Gravity.START
-
-        addEvents(params)
-
-        addButton()
-
-        Loader.serv = this
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            // 알림 표시
-            val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-            notificationManager.createNotificationChannel(
-                NotificationChannel(
-                    "default",
-                    "기본 채널",
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-            )
-
-
-            val notificationIntent = Intent(this, ExitActivity::class.java)
-
-            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
-
-            val builder = NotificationCompat.Builder(this, "default")
-                .setSmallIcon(R.mipmap.appicon)
-                .setContentTitle("공채계산기 작동 중")
-                .setContentText("알림 누르거나 결과 화면에서 X 버튼 누를 경우 앱 종료")
-                .setContentIntent(pendingIntent) // 알림 클릭 시 이동
-                .setOngoing(true)
-
-
-            val notification = builder.build()
-            notification.flags = Notification.FLAG_ONGOING_EVENT
-            startForeground(NOTI_ID, notification)
-        }
-
-        windowManager.addView(overlayView, params)
-    }
 
     fun setLoading(isLoading: Boolean) {
         val overlayView1: View = overlayView.findViewById(R.id.overlayView)
@@ -627,39 +682,6 @@ private var selectedTag = 0
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_OK) ?: Activity.RESULT_OK
-        val data = intent?.getParcelableExtra<Intent>("data")
-        val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
-        setupMediaProjection()
-
-        return START_NOT_STICKY
-    }
-
-
-    private fun setupMediaProjection() {
-        val metrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(metrics)
-
-        imageReader = ImageReader.newInstance(metrics.widthPixels, metrics.heightPixels, PixelFormat.RGBA_8888, 2)
-
-        val handlerThread = HandlerThread("ScreenCapture")
-        handlerThread.start()
-        handler = Handler(handlerThread.looper)
-
-        virtualDisplay = mediaProjection.createVirtualDisplay(
-            "OverlayService",
-            metrics.widthPixels,
-            metrics.heightPixels,
-            metrics.densityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            imageReader.surface,
-            null,
-            handler
-        )
-    }
-
     private fun captureScreenAndRecognizeText() {
         val image = imageReader.acquireLatestImage()
         if (image != null) {
@@ -741,6 +763,14 @@ private var selectedTag = 0
                         resultViews.add(resultTextView)
                     } else if (blockText.contains("가드") && blockText.length > 2) { /* 뱅가드 보정 */
                         resultTextView = linearLayout.findViewById((R.id.qodrkem))
+
+                        resultViews.add(resultTextView)
+                    } else if (blockText.contains("신임")) { /* 신입 보정 */
+                        resultTextView = linearLayout.findViewById((R.id.tlsdlq)) 
+
+                        resultViews.add(resultTextView)
+                    } else if (blockText.contains("속") && blockText.length > 3) { /* 쾌부 보정 */
+                        resultTextView = linearLayout.findViewById((R.id.zhothrqnghkf))
 
                         resultViews.add(resultTextView)
                     }

@@ -13,3 +13,8 @@ class Drawer {
         }
     }
 }
+
+data class OperatorColor (
+    var background: Int,
+    var stroke: Int
+)

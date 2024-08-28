@@ -15,27 +15,23 @@
 
 package com.jge.testapp2
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
-import android.widget.Button
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Paint
 import android.media.projection.MediaProjectionManager
-import android.opengl.Visibility
+import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
+import android.os.Bundle
+import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
@@ -52,67 +48,29 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var projectionManager: MediaProjectionManager
 
-    fun onClickNewVersion() {
-        val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
-        val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
-        val updateButton = findViewById<TextView>(R.id.updateButton)
-        newVersionTextView.text = " 받아오는 중"
+    private fun requestPermission() {
 
-        updateButton.visibility = View.GONE
-        CoroutineScope(Dispatchers.Main).launch {
-            withContext(Dispatchers.IO) {
-                Loader.getOpData()
-            }
-
-            val dvt = findViewById<TextView>(R.id.dataVersionText)
-            dvt.text = Loader.newVersion
-
-            newVersionView.visibility = View.GONE
-        }
-    }
-
-    fun getVersionData() {
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val data = withContext(Dispatchers.IO) {
-                    Loader.getVersionData()
-                }
-
-                val newVersion = data.getString("dataVersion")
-
-                val dvt = findViewById<TextView>(R.id.dataVersionText)
-                dvt.text = Loader.currentVersion
-
-                if (Loader.currentVersion.compareTo(newVersion) != 0) {
-                    Loader.newVersion = newVersion
-                    val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
-                    newVersionView.visibility = View.VISIBLE
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-
+        if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.TIRAMISU) {
+            if (PackageManager.PERMISSION_DENIED == ContextCompat.checkSelfPermission(
+                    this, android.Manifest.permission.POST_NOTIFICATIONS)
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS,
+                        android.Manifest.permission.FOREGROUND_SERVICE,
+                        "android:project_media"),
+                    5
+                )
             }
         }
     }
 
-    private suspend fun loadData() {
-        withContext(Dispatchers.IO) {
-            Loader.loadData(this@MainActivity)
-        }
-        getVersionData()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.TIRAMISU && PackageManager.PERMISSION_DENIED == ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)) {
 
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                5
-            )
-        }
+        requestPermission()
 
         Pref.shared.preferences = this.getSharedPreferences("data", 0)
 
@@ -121,6 +79,8 @@ class MainActivity : AppCompatActivity() {
 
         setLicenseButton()
         setPolicyButton()
+
+
 
         val updateButton = findViewById<TextView>(R.id.updateButton)
         updateButton.setOnTouchListener { _, event ->
@@ -150,6 +110,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
+            if (Settings.canDrawOverlays(this)) {
+                startProjection()
+            }
+        } else if (requestCode == REQUEST_MEDIA_PROJECTION) {
+            if (resultCode == Activity.RESULT_OK) {
+                val serviceIntent = Intent(this, OverlayService::class.java)
+                serviceIntent.putExtra("resultCode", resultCode)
+                serviceIntent.putExtra("data", data)
+                startForegroundService(serviceIntent)
+                finish()
+            }
+        }
+    }
+
+    private fun startProjection() {
+        val intent = projectionManager.createScreenCaptureIntent()
+        startActivityForResult(intent, REQUEST_MEDIA_PROJECTION)
+    }
+
     fun setLicenseButton() {
         val libraryButton = this.findViewById<TextView>(R.id.libraryButtn)
 
@@ -205,25 +188,54 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
-            if (Settings.canDrawOverlays(this)) {
-                startProjection()
+    fun onClickNewVersion() {
+        val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
+        val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
+        val updateButton = findViewById<TextView>(R.id.updateButton)
+        newVersionTextView.text = " 받아오는 중"
+
+        updateButton.visibility = View.GONE
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+                Loader.getOpData()
             }
-        } else if (requestCode == REQUEST_MEDIA_PROJECTION) {
-            if (resultCode == Activity.RESULT_OK) {
-                val serviceIntent = Intent(this, OverlayService::class.java)
-                serviceIntent.putExtra("resultCode", resultCode)
-                serviceIntent.putExtra("data", data)
-                startForegroundService(serviceIntent)
-                finish()
+
+            val dvt = findViewById<TextView>(R.id.dataVersionText)
+            dvt.text = Loader.newVersion
+
+            newVersionView.visibility = View.GONE
+        }
+    }
+
+    fun getVersionData() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val data = withContext(Dispatchers.IO) {
+                    Loader.getVersionData()
+                }
+
+                val newVersion = data.getString("dataVersion")
+
+                val dvt = findViewById<TextView>(R.id.dataVersionText)
+                dvt.text = Loader.currentVersion
+
+                if (Loader.currentVersion.compareTo(newVersion) != 0) {
+                    Loader.newVersion = newVersion
+                    val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
+                    newVersionView.visibility = View.VISIBLE
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+
             }
         }
     }
 
-    private fun startProjection() {
-        val intent = projectionManager.createScreenCaptureIntent()
-        startActivityForResult(intent, REQUEST_MEDIA_PROJECTION)
+    private suspend fun loadData() {
+        withContext(Dispatchers.IO) {
+            Loader.loadData(this@MainActivity)
+        }
+        getVersionData()
     }
+
 }

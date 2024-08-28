@@ -21,9 +21,16 @@ class ItemAdapter(private val dataList: List<Item>) : RecyclerView.Adapter<ItemV
         override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
             val data = dataList[position]
             holder.item_name.text = data.name
-            holder.item_name.background = if (data.rarity == "6") { ContextCompat.getDrawable(parent_!!.context, R.drawable.six_op_background) }
-            else if (data.rarity == "5") { ContextCompat.getDrawable(parent_!!.context, R.drawable.five_op_background) }
-            else { ContextCompat.getDrawable(parent_!!.context, R.drawable.op_background) }
+            holder.item_name.background = when (data.rarity) {
+                "6" -> ContextCompat.getDrawable(parent_!!.context, R.drawable.six_op_background)
+                "5" -> ContextCompat.getDrawable(parent_!!.context, R.drawable.five_op_background)
+                "4" -> ContextCompat.getDrawable(parent_!!.context, R.drawable.four_op_background)
+                else -> ContextCompat.getDrawable(parent_!!.context, R.drawable.op_background)
+            }
+
+            if (data.rarity == "5") {
+                holder.item_name.setTextColor(ContextCompat.getColor(parent_!!.context, android.R.color.black))
+            }
         }
 
         override fun getItemCount(): Int {

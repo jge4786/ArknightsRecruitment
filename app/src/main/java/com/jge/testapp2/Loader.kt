@@ -2,6 +2,7 @@ package com.jge.testapp2
 
 import android.app.Service
 import android.content.Context
+import android.graphics.Color
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import com.google.gson.Gson
@@ -9,9 +10,9 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
 import java.io.IOException
-import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.Exception
 
 
 data class Item(
@@ -45,12 +46,32 @@ class Loader {
                 }
             } else {
                 data = readJsonFile(context, "opData.json")
-                writeData()
+                writeData("opData")
             }
 
+            val colorRawPref = Pref.shared.preferences.getString("colorData", null)
+            
+            if (colorRawPref != null && colorRawPref != "[]") {
+                try {
+                    operatorColor = GsonBuilder().create().fromJson(
+                        colorRawPref, object: TypeToken<ArrayList<OperatorColor>>() {}.type
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                operatorColor = listOf(
+                    OperatorColor(background = Color.parseColor("#834516"), stroke = Color.parseColor("#FFC800")),
+                    OperatorColor(background = Color.parseColor("#2E7FFF"), stroke = Color.parseColor("#5311AA")),
+                    OperatorColor(background = Color.parseColor("#F5F58C"), stroke = Color.parseColor("#A56255")),
+                    OperatorColor(background = Color.BLACK, stroke = Color.WHITE)
+                )
+
+                writeData("opColor")
+            }
         }
 
-        fun writeData() {
+        fun writeData(target: String) {
             val editor = Pref.shared.preferences.edit()
             val json = GsonBuilder().create().toJson(data)
             editor.putString("opData", json)
@@ -223,6 +244,9 @@ class Loader {
                 e.printStackTrace()
             }
         }
+
+
+        lateinit var operatorColor: List<OperatorColor>
     }
 
 }
