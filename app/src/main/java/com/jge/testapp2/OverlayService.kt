@@ -417,14 +417,18 @@ private var selectedTag = 0
             }
         }.thenByDescending { entry ->
             entry.second.maxByOrNull {
-                var rarity = it.rarity.toInt()
-                rarity != 6
+                when (val rarity = it.rarity.toInt()) {
+                    6 -> 0
+                    else -> rarity
+                }
             }?.rarity?.toInt() ?: 0 // 결과 데이터 최고치로 정렬
-        }.thenBy { entry ->
+        }.thenByDescending { entry ->
             entry.second.minByOrNull {
-                val rarity = it.rarity.toInt()
-                rarity == 4 || rarity == 5 || rarity == 1
-            }?.rarity?.toInt() ?: 0 // 결과 데이터 최저치로 정렬
+                when (val rarity = it.rarity.toInt()) {
+                    6 -> 7
+                    else -> rarity
+                }
+            }?.rarity?.toInt() ?: 0
         }
 
         val sortedMap = items.toList().sortedWith(comparator).toMap()

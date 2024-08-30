@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!--라이브러리 목록 헤더-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -43,7 +44,7 @@
                     android:background="@drawable/down_chevron" />
 
             </LinearLayout>
-
+            <!--라이브러리 리스트-->
             <TableLayout
                 android:id="@+id/libraryList"
                 android:layout_width="match_parent"
@@ -138,7 +139,6 @@
                         android:text="Go"
                         android:textStyle="bold" />
                 </TableRow>
-
             </TableLayout>
         </LinearLayout>
     </ScrollView>

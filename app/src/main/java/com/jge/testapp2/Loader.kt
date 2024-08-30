@@ -48,27 +48,6 @@ class Loader {
                 data = readJsonFile(context, "opData.json")
                 writeData("opData")
             }
-
-            val colorRawPref = Pref.shared.preferences.getString("colorData", null)
-            
-            if (colorRawPref != null && colorRawPref != "[]") {
-                try {
-                    operatorColor = GsonBuilder().create().fromJson(
-                        colorRawPref, object: TypeToken<ArrayList<OperatorColor>>() {}.type
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            } else {
-                operatorColor = listOf(
-                    OperatorColor(background = Color.parseColor("#834516"), stroke = Color.parseColor("#FFC800")),
-                    OperatorColor(background = Color.parseColor("#2E7FFF"), stroke = Color.parseColor("#5311AA")),
-                    OperatorColor(background = Color.parseColor("#F5F58C"), stroke = Color.parseColor("#A56255")),
-                    OperatorColor(background = Color.BLACK, stroke = Color.WHITE)
-                )
-
-                writeData("opColor")
-            }
         }
 
         fun writeData(target: String) {
@@ -244,9 +223,6 @@ class Loader {
                 e.printStackTrace()
             }
         }
-
-
-        lateinit var operatorColor: List<OperatorColor>
     }
 
 }

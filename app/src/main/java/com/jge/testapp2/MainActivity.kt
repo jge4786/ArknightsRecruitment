@@ -18,6 +18,7 @@ package com.jge.testapp2
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.Paint
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
@@ -30,6 +31,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TableLayout
+import android.widget.TableRow
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -79,7 +81,6 @@ class MainActivity : AppCompatActivity() {
 
         setLicenseButton()
         setPolicyButton()
-
 
 
         val updateButton = findViewById<TextView>(R.id.updateButton)
