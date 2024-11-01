@@ -359,6 +359,11 @@ private var selectedTag = 0
                 activeView = activeTagLinearLayout.findViewById(R.id.activeglffld)
                 view = tagLinearLayout.findViewById(R.id.glffld)
             }
+
+            "원소" -> {
+                activeView = activeTagLinearLayout.findViewById(R.id.activednjsth)
+                view = tagLinearLayout.findViewById(R.id.dnjsth)
+            }
             else -> {
                 activeView = null
                 view = null
@@ -756,6 +761,7 @@ private var selectedTag = 0
                     "코스트+" -> resultTextView = linearLayout.findViewById(R.id.zhtmxm)
                     "쾌속부활" -> resultTextView = linearLayout.findViewById(R.id.zhothrqnghkf)
                     "힐링" -> resultTextView = linearLayout.findViewById(R.id.glffld)
+                    "원소" -> resultTextView = linearLayout.findViewById(R.id.dnjsth)
                 }
 
                 if (resultTextView != null) {

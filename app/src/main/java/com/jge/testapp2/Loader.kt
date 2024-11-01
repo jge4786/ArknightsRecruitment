@@ -127,6 +127,7 @@ class Loader {
                     26 -> result.add("강제이동")
                     27 -> result.add("소환")
                     28 -> result.add("로봇")
+                    29 -> result.add("원소")
                     else -> result.add("Unknown")
                 }
             }
@@ -164,6 +165,7 @@ class Loader {
                 "강제이동" -> 67108864
                 "소환" -> 134217728
                 "로봇" -> 268435456
+                "원소" -> 536870912
                 else -> -1 // Unknown
             }
         }

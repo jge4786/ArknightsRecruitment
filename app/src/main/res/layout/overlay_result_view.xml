@@ -420,6 +420,18 @@
                                 android:layout_marginRight="8dp"
                                 android:visibility="gone"
                                 />
+                            <TextView
+                                android:id="@+id/activednjsth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/white"
+                                android:background="@drawable/active_tag"
+                                android:text="원소"
+                                android:paddingVertical="5dp"
+                                android:paddingHorizontal="10dp"
+                                android:layout_marginRight="8dp"
+                                android:visibility="gone"
+                                />
                         </LinearLayout>
                     </HorizontalScrollView>
 
@@ -721,6 +733,16 @@
                                 android:layout_height="wrap_content"
                                 android:background="@drawable/border"
                                 android:text="힐링"
+                                android:paddingVertical="5dp"
+                                android:paddingHorizontal="10dp"
+                                android:layout_marginRight="8dp"
+                                />
+                            <TextView
+                                android:id="@+id/dnjsth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/border"
+                                android:text="원소"
                                 android:paddingVertical="5dp"
                                 android:paddingHorizontal="10dp"
                                 android:layout_marginRight="8dp"
