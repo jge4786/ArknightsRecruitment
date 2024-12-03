@@ -72,7 +72,9 @@ class OverlayService : Service() {
     private lateinit var tagLinearLayout: LinearLayout
     private lateinit var activeTagLinearLayout: LinearLayout
 
-private var selectedTag = 0
+    private var selectedTag = 0
+
+    private var isRecognizing: Boolean = false
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -535,6 +537,7 @@ private var selectedTag = 0
         val overlayView1: View = overlayView.findViewById(R.id.overlayView)
         val overlayButton: Button = overlayView1.findViewById(R.id.overlayButton)
 
+        isRecognizing = isLoading
         overlayButton.text = if (isLoading) { "•••" } else { "인식" }
     }
 
@@ -568,7 +571,7 @@ private var selectedTag = 0
                 MotionEvent.ACTION_UP -> {
                     val diffX = (event.rawX - initialTouchX).toInt().absoluteValue
                     val diffY = (event.rawY - initialTouchY).toInt().absoluteValue
-                    if (diffX < 10 && diffY < 10) {
+                    if (diffX < 10 && diffY < 10 && !isRecognizing) {
 
                         setLoading(true)
                         captureScreenAndRecognizeText()
@@ -653,9 +656,6 @@ private var selectedTag = 0
 
                         overlayView1.visibility = View.VISIBLE
                         overlayView2.visibility = View.GONE
-
-                        setLoading(true)
-                        captureScreenAndRecognizeText()
                     }
                     true
                 }

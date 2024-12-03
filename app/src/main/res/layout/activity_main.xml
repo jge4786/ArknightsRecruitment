@@ -20,6 +20,7 @@
         android:text="시작"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:paddingVertical="15dp"
         android:layout_marginBottom="16dp" />
 
     <!-- 개인정보 처리방침 (시작 버튼 하단, marginTop 20dp) -->
