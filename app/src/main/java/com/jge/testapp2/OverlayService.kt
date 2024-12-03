@@ -22,11 +22,13 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -39,7 +41,14 @@ import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 import kotlin.system.exitProcess
 
@@ -601,6 +610,8 @@ private var selectedTag = 0
 
         val overlayCloseButton: Button = overlayView2.findViewById(R.id.overlayCloseButton)
         val appCloseButton: Button = overlayView2.findViewById(R.id.appCloseButton)
+        val retryButton: Button = overlayView2.findViewById(R.id.retryButton)
+
         overlayCloseButton.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -643,12 +654,69 @@ private var selectedTag = 0
                         overlayView1.visibility = View.VISIBLE
                         overlayView2.visibility = View.GONE
 
+                        setLoading(true)
+                        captureScreenAndRecognizeText()
                     }
                     true
                 }
                 else -> false
             }
         }
+
+        retryButton.setOnTouchListener {_, event ->
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Remember the initial position.
+                    initialX = params.x
+                    initialY = params.y
+
+                    // Get the touch location
+                    initialTouchX = event.rawX
+                    initialTouchY = event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    // Calculate the new X and Y coordinates of the view.
+                    params.x = initialX + (event.rawX - initialTouchX).toInt()
+                    params.y = initialY + (event.rawY - initialTouchY).toInt()
+
+                    // Update the layout with new X & Y coordinate
+                    windowManager.updateViewLayout(overlayView, params)
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val diffX = (event.rawX - initialTouchX).toInt().absoluteValue
+                    val diffY = (event.rawY - initialTouchY).toInt().absoluteValue
+                    if (diffX < 10 && diffY < 10) {
+                        activeTagLinearLayout.allViews.forEach {
+                            if (it is TextView) {
+                                it.visibility = View.GONE
+                            }
+                        }
+                        tagLinearLayout.allViews.forEach {
+                            it.visibility = View.VISIBLE
+                        }
+
+                        selectedTag = 0
+
+                        clearList()
+
+                        CoroutineScope(Dispatchers.Main).launch {
+                            overlayView1.visibility = View.VISIBLE
+                            overlayView2.visibility = View.GONE
+
+                            delay(100L)
+
+                            setLoading(true)
+                            captureScreenAndRecognizeText()
+                        }
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+
         appCloseButton.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -708,94 +776,139 @@ private var selectedTag = 0
 
             image.close()
 
-            recognizeTextFromImage(bitmap)
+            CoroutineScope(Dispatchers.Main).launch {
+                recognizeTextFromImage(bitmap)
+            }
         }
     }
 
-    private fun recognizeTextFromImage(bitmap: Bitmap) {
+    private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer, isLastTry: Boolean): Boolean {
+        return suspendCoroutine { continuation ->
+            val resultView = overlayView.findViewById<View>(R.id.overlayResultView)
+            val linearLayout = resultView.findViewById<LinearLayout>(R.id.tagLinearLayout)
+
+            var hitCnt = 0
+            var recognitionSuccess = false
+
+            val result: Task<Text> = recognizer.process(image)
+            result.addOnSuccessListener { visionText ->
+                var resultViews: MutableList<TextView> = mutableListOf()
+
+                for (block in visionText.textBlocks) {
+                    val blockText = block.text
+
+                    var resultTextView: TextView? = null
+                    when (blockText) {
+                        "신입" -> resultTextView = linearLayout.findViewById(R.id.tlsdlq)
+                        "특별채용" -> resultTextView = linearLayout.findViewById(R.id.xmrco)
+                        "고급특별채용" -> resultTextView = linearLayout.findViewById(R.id.rhxmrco)
+                        "근거리" -> resultTextView = linearLayout.findViewById(R.id.rmsrjfl)
+                        "원거리" -> resultTextView = linearLayout.findViewById(R.id.dnjsrjfl)
+                        "가드" -> resultTextView = linearLayout.findViewById(R.id.rkem)
+                        "디펜더" -> resultTextView = linearLayout.findViewById(R.id.elvpsej)
+                        "메딕" -> resultTextView = linearLayout.findViewById(R.id.apelr)
+                        "뱅가드" -> resultTextView = linearLayout.findViewById(R.id.qodrkem)
+                        "서포터" -> resultTextView = linearLayout.findViewById(R.id.tjvhxj)
+                        "스나이퍼" -> resultTextView = linearLayout.findViewById(R.id.tmskdlvj)
+                        "스페셜리스트" -> resultTextView = linearLayout.findViewById(R.id.tmvptuffltmxm)
+                        "캐스터" -> resultTextView = linearLayout.findViewById(R.id.zotmxj)
+                        "감속" -> resultTextView = linearLayout.findViewById(R.id.rkathr)
+                        "강제이동" -> resultTextView = linearLayout.findViewById(R.id.rkdwpdlehd)
+                        "누커" -> resultTextView = linearLayout.findViewById(R.id.snzj)
+                        "디버프" -> resultTextView = linearLayout.findViewById(R.id.elqjvm)
+                        "딜러" -> resultTextView = linearLayout.findViewById(R.id.elffj)
+                        "로봇" -> resultTextView = linearLayout.findViewById(R.id.fhqht)
+                        "방어형" -> resultTextView = linearLayout.findViewById(R.id.qkddjgud)
+                        "범위공격" -> resultTextView = linearLayout.findViewById(R.id.qjadnlrhdrur)
+                        "생존형" -> resultTextView = linearLayout.findViewById(R.id.todwhs)
+                        "소환" -> resultTextView = linearLayout.findViewById(R.id.thghks)
+                        "제어형" -> resultTextView = linearLayout.findViewById(R.id.wpdjgud)
+                        "지원" -> resultTextView = linearLayout.findViewById(R.id.wldnjs)
+                        "코스트+" -> resultTextView = linearLayout.findViewById(R.id.zhtmxm)
+                        "쾌속부활" -> resultTextView = linearLayout.findViewById(R.id.zhothrqnghkf)
+                        "힐링" -> resultTextView = linearLayout.findViewById(R.id.glffld)
+                        "원소" -> resultTextView = linearLayout.findViewById(R.id.dnjsth)
+                    }
+
+                    if (resultTextView != null) {
+                        resultViews.add(resultTextView)
+                        hitCnt += 1
+                    } else {
+                        if (blockText.contains("고급")) {
+                            resultTextView = linearLayout.findViewById(R.id.rhxmrco) /* 고특채 보정 */
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
+                        } else if (blockText.contains("가드") && blockText.length > 2) { /* 뱅가드 보정 */
+                            resultTextView = linearLayout.findViewById((R.id.qodrkem))
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
+                        } else if (blockText.contains("신임") || blockText.contains("신업") || blockText.contains(
+                                "신엄"
+                            )
+                        ) { /* 신입 보정 */
+                            resultTextView = linearLayout.findViewById((R.id.tlsdlq))
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
+                        } else if (blockText.contains("속") && blockText.length > 3) { /* 쾌부 보정 */
+                            resultTextView = linearLayout.findViewById((R.id.zhothrqnghkf))
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
+                        } else if (blockText.contains("캐스티")) { /* 캐스터 보정 */
+                            resultTextView = linearLayout.findViewById(R.id.zotmxj)
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
+                        }
+                    }
+                }
+
+                println("hitCnt: $hitCnt ;;; $isLastTry")
+                if (hitCnt == 5 || isLastTry) {
+                    onTagClick(resultViews)
+
+                    setLoading(false)
+                    val overlayView1: View = overlayView.findViewById(R.id.overlayView)
+                    overlayView1.visibility = View.GONE
+                    resultView.visibility = View.VISIBLE
+
+                    recognitionSuccess = true
+                }
+
+                continuation.resume(recognitionSuccess)
+            }.addOnFailureListener { e ->
+                Log.e("OverlayService", "Text recognition failed", e)
+                continuation.resume(false)
+            }
+        }
+    }
+
+    private suspend fun recognizeTextFromImage(bitmap: Bitmap) {
         val image = InputImage.fromBitmap(bitmap, 0)
 
         val recognizer = TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
 
         val resultView = overlayView.findViewById<View>(R.id.overlayResultView)
 
+        var loopCnt = 0
+        val loopLimit = Loader.retryLimit
+
+        println("반복횟수: $loopLimit")
         resultView.background = Drawer.setBorder(Color.parseColor("#FAFAFA"), 12.0f, Color.BLACK, 2)
 
-        val linearLayout = resultView.findViewById<LinearLayout>(R.id.tagLinearLayout)
+        while (loopCnt < loopLimit) {
+            val result = recognizeImage(image, recognizer, loopCnt + 1 == loopLimit)
 
-        val result: Task<Text> = recognizer.process(image)
-        result.addOnSuccessListener { visionText ->
-            var resultViews: MutableList<TextView> = mutableListOf()
-
-            for (block in visionText.textBlocks) {
-                val blockText = block.text
-                Log.d("OverlayService", "Recognized Text: $blockText")
-
-                var resultTextView: TextView? = null
-                when(blockText) {
-                    "신입" -> resultTextView = linearLayout.findViewById(R.id.tlsdlq)
-                    "특별채용" -> resultTextView = linearLayout.findViewById(R.id.xmrco)
-                    "고급특별채용" -> resultTextView = linearLayout.findViewById(R.id.rhxmrco)
-                    "근거리" -> resultTextView = linearLayout.findViewById(R.id.rmsrjfl)
-                    "원거리" -> resultTextView = linearLayout.findViewById(R.id.dnjsrjfl)
-                    "가드" -> resultTextView = linearLayout.findViewById(R.id.rkem)
-                    "디펜더" -> resultTextView = linearLayout.findViewById(R.id.elvpsej)
-                    "메딕" -> resultTextView = linearLayout.findViewById(R.id.apelr)
-                    "뱅가드" -> resultTextView = linearLayout.findViewById(R.id.qodrkem)
-                    "서포터" -> resultTextView = linearLayout.findViewById(R.id.tjvhxj)
-                    "스나이퍼" -> resultTextView = linearLayout.findViewById(R.id.tmskdlvj)
-                    "스페셜리스트" -> resultTextView = linearLayout.findViewById(R.id.tmvptuffltmxm)
-                    "캐스터" -> resultTextView = linearLayout.findViewById(R.id.zotmxj)
-                    "감속" -> resultTextView = linearLayout.findViewById(R.id.rkathr)
-                    "강제이동" -> resultTextView = linearLayout.findViewById(R.id.rkdwpdlehd)
-                    "누커" -> resultTextView = linearLayout.findViewById(R.id.snzj)
-                    "디버프" -> resultTextView = linearLayout.findViewById(R.id.elqjvm)
-                    "딜러" -> resultTextView = linearLayout.findViewById(R.id.elffj)
-                    "로봇" -> resultTextView = linearLayout.findViewById(R.id.fhqht)
-                    "방어형" -> resultTextView = linearLayout.findViewById(R.id.qkddjgud)
-                    "범위공격" -> resultTextView = linearLayout.findViewById(R.id.qjadnlrhdrur)
-                    "생존형" -> resultTextView = linearLayout.findViewById(R.id.todwhs)
-                    "소환" -> resultTextView = linearLayout.findViewById(R.id.thghks)
-                    "제어형" -> resultTextView = linearLayout.findViewById(R.id.wpdjgud)
-                    "지원" -> resultTextView = linearLayout.findViewById(R.id.wldnjs)
-                    "코스트+" -> resultTextView = linearLayout.findViewById(R.id.zhtmxm)
-                    "쾌속부활" -> resultTextView = linearLayout.findViewById(R.id.zhothrqnghkf)
-                    "힐링" -> resultTextView = linearLayout.findViewById(R.id.glffld)
-                    "원소" -> resultTextView = linearLayout.findViewById(R.id.dnjsth)
-                }
-
-                if (resultTextView != null) {
-                    resultViews.add(resultTextView)
-                } else {
-                    if (blockText.contains("고급")) {
-                        resultTextView = linearLayout.findViewById(R.id.rhxmrco) /* 고특채 보정 */
-
-                        resultViews.add(resultTextView)
-                    } else if (blockText.contains("가드") && blockText.length > 2) { /* 뱅가드 보정 */
-                        resultTextView = linearLayout.findViewById((R.id.qodrkem))
-
-                        resultViews.add(resultTextView)
-                    } else if (blockText.contains("신임")) { /* 신입 보정 */
-                        resultTextView = linearLayout.findViewById((R.id.tlsdlq)) 
-
-                        resultViews.add(resultTextView)
-                    } else if (blockText.contains("속") && blockText.length > 3) { /* 쾌부 보정 */
-                        resultTextView = linearLayout.findViewById((R.id.zhothrqnghkf))
-
-                        resultViews.add(resultTextView)
-                    }
-                }
-            }
-
-            onTagClick(resultViews)
-
-            setLoading(false)
-            val overlayView1: View = overlayView.findViewById(R.id.overlayView)
-            overlayView1.visibility = View.GONE
-            resultView.visibility = View.VISIBLE
-
-        }.addOnFailureListener { e ->
-            Log.e("OverlayService", "Text recognition failed", e)
+            if(result) { break }
+            else { loopCnt++ }
         }
     }
 

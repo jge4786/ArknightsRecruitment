@@ -22,13 +22,62 @@ data class Item(
     val rarity: String
 )
 
+enum class DataType(val key: String) {
+    OPDATA("opData"),
+    RETRYLIMIT("retryLimit")
+}
+
+enum class RarityType {
+    ONE,
+    FOUR,
+    FIVE,
+    SIX
+}
+enum class LanguageType {
+    KOREAN,
+    CHINESE,
+    JAPANESE,
+    ENGLISH
+}
+
 class Loader {
     companion object {
         lateinit var data: List<Item>
         lateinit var currentVersion: String
+
+        var language: LanguageType = LanguageType.KOREAN
+        var retryLimit: Int = 3
+
         var newVersion: String = "0.0.0"
 
-        fun loadData(context: Context) {
+        private fun loadRetryData(context: Context) {
+            val retryLimitPref = Pref.shared.preferences.getInt("retryLimit", -1)
+
+            println("뭥미: $retryLimitPref")
+            if(retryLimitPref <= 0) {
+                writeData(DataType.RETRYLIMIT, 3)
+                retryLimit = 3
+            } else {
+                retryLimit = retryLimitPref
+            }
+        }
+
+        private fun loadLanguageData(context: Context) {
+            val languagePref = Pref.shared.preferences.getInt("language", -1)
+
+            if(languagePref < 0) {
+                writeData(DataType.RETRYLIMIT, 0)
+            } else {
+                language = LanguageType.values().getOrNull(languagePref) ?: LanguageType.KOREAN
+            }
+        }
+
+        private fun loadSettingsData(context: Context) {
+            loadRetryData(context)
+            loadLanguageData(context)
+        }
+
+        private fun loadOpData(context: Context) {
             val rawPref = Pref.shared.preferences.getString("opData", null)
             currentVersion = Pref.shared.preferences.getString("opVersion", null).toString()
 
@@ -46,15 +95,28 @@ class Loader {
                 }
             } else {
                 data = readJsonFile(context, "opData.json")
-                writeData("opData")
+                writeData(DataType.OPDATA, data)
             }
         }
 
-        fun writeData(target: String) {
-            val editor = Pref.shared.preferences.edit()
-            val json = GsonBuilder().create().toJson(data)
-            editor.putString("opData", json)
+        fun loadData(context: Context) {
+            loadOpData(context)
+            loadSettingsData(context)
+        }
 
+        fun writeData(type: DataType, data: Any) {
+            val editor = Pref.shared.preferences.edit()
+
+            when (type) {
+                DataType.OPDATA -> {
+                    val json = GsonBuilder().create().toJson(data)
+                    editor.putString(type.key, json)
+                }
+                DataType.RETRYLIMIT -> {
+                    if (data is Int) { editor.putInt(type.key, data) }
+                    else             { editor.putInt(type.key, 3) }
+                }
+            }
             editor.apply()
         }
 
@@ -186,8 +248,8 @@ class Loader {
         public var serv: Service? = null
 
 
-        private val versionUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/Versions.json"
-        private val opUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/opData.json"
+        private const val versionUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/Versions.json"
+        private const val opUrl = "https://raw.githubusercontent.com/jge4786/ArknightsRecruitment/main/app/src/main/assets/opData.json"
         @Throws(IOException::class)
         fun getVersionData(): JSONObject {
             val url = URL(versionUrl)

@@ -15,9 +15,11 @@
 
 package com.jge.testapp2
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Paint
 import android.media.projection.MediaProjectionManager
@@ -30,6 +32,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
@@ -68,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -78,10 +82,9 @@ class MainActivity : AppCompatActivity() {
 
         projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
-
-        setLicenseButton()
         setPolicyButton()
 
+        val buttonWidth = (Resources.getSystem().displayMetrics.widthPixels * 0.8).toInt()
 
         val updateButton = findViewById<TextView>(R.id.updateButton)
         updateButton.setOnTouchListener { _, event ->
@@ -110,6 +113,19 @@ class MainActivity : AppCompatActivity() {
                 startProjection()
             }
         }
+
+        val overlayBtnLayoutParams = buttonShowOverlay.layoutParams as RelativeLayout.LayoutParams
+
+        overlayBtnLayoutParams.width = buttonWidth
+        buttonShowOverlay.layoutParams = overlayBtnLayoutParams
+
+
+
+        val buttonSettings: Button = findViewById(R.id.buttonSettings)
+        buttonSettings.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -132,52 +148,6 @@ class MainActivity : AppCompatActivity() {
     private fun startProjection() {
         val intent = projectionManager.createScreenCaptureIntent()
         startActivityForResult(intent, REQUEST_MEDIA_PROJECTION)
-    }
-
-    fun setLicenseButton() {
-        val libraryButton = this.findViewById<TextView>(R.id.libraryButtn)
-
-        libraryButton.setOnClickListener {
-            val ll = this.findViewById<TableLayout>(R.id.libraryList)
-            val lc = this.findViewById<ImageView>(R.id.libraryChevron)
-            val isHidden = ll.visibility == View.GONE
-            ll.visibility = if (isHidden) { View.VISIBLE } else { View.GONE }
-            lc.background = if (isHidden) { ContextCompat.getDrawable(this, R.drawable.up_chevron) } else {
-                ContextCompat.getDrawable(this, R.drawable.down_chevron)
-            }
-        }
-
-        val mlkitButton = this.findViewById<TextView>(R.id.mlkitView)
-        val flexboxButton = this.findViewById<TextView>(R.id.flexboxView)
-        val gsonButton = this.findViewById<TextView>(R.id.gsonView)
-        val mlkitLisenceButton = this.findViewById<TextView>(R.id.mlkitLicenseView)
-        val flexboxLisenceButton = this.findViewById<TextView>(R.id.flexboxLicenseView)
-        val gsonLisenceButton = this.findViewById<TextView>(R.id.gsonLicenseView)
-
-        flexboxButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/flexbox-layout"))
-            startActivity(ii)
-        }
-        mlkitButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://developers.google.com/ml-kit/vision/text-recognition/v2/android?hl=ko"))
-            startActivity(ii)
-        }
-        gsonButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/google/gson"))
-            startActivity(ii)
-        }
-        flexboxLisenceButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/google/flexbox-layout/main/LICENSE"))
-            startActivity(ii)
-        }
-        mlkitLisenceButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://developers.google.com/ml-kit/terms"))
-            startActivity(ii)
-        }
-        gsonLisenceButton.setOnClickListener {
-            val ii = Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/google/gson/main/LICENSE"))
-            startActivity(ii)
-        }
     }
 
     fun setPolicyButton() {

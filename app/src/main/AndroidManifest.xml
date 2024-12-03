@@ -32,6 +32,7 @@
                   android:exported="false">
         </activity>
 
+        <activity android:name=".SettingsActivity"/>
 
         <service
             android:name=".OverlayService"
