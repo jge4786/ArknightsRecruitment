@@ -50,10 +50,14 @@ class Loader {
 
         var newVersion: String = "0.0.0"
 
-        private fun loadRetryData(context: Context) {
-            val retryLimitPref = Pref.shared.preferences.getInt("retryLimit", -1)
+        fun setRetryData(newValue: Int) {
+            retryLimit = newValue
+            writeData(DataType.RETRYLIMIT, retryLimit)
+        }
 
-            println("뭥미: $retryLimitPref")
+        private fun loadRetryData(context: Context) {
+            val retryLimitPref = Pref.shared.preferences.getInt(DataType.RETRYLIMIT.key, -1)
+
             if(retryLimitPref <= 0) {
                 writeData(DataType.RETRYLIMIT, 3)
                 retryLimit = 3
@@ -63,18 +67,20 @@ class Loader {
         }
 
         private fun loadLanguageData(context: Context) {
-            val languagePref = Pref.shared.preferences.getInt("language", -1)
-
-            if(languagePref < 0) {
-                writeData(DataType.RETRYLIMIT, 0)
-            } else {
-                language = LanguageType.values().getOrNull(languagePref) ?: LanguageType.KOREAN
-            }
+//            val languagePref = Pref.shared.preferences.getInt("language", -1)
+//
+//            if(languagePref < 0) {
+//                writeData(DataType.RETRYLIMIT, 0)
+//            } else {
+//                language = LanguageType.values().getOrNull(languagePref) ?: LanguageType.KOREAN
+//            }
         }
 
         private fun loadSettingsData(context: Context) {
             loadRetryData(context)
             loadLanguageData(context)
+
+
         }
 
         private fun loadOpData(context: Context) {
@@ -104,7 +110,7 @@ class Loader {
             loadSettingsData(context)
         }
 
-        fun writeData(type: DataType, data: Any) {
+        private fun writeData(type: DataType, data: Any) {
             val editor = Pref.shared.preferences.edit()
 
             when (type) {
@@ -113,6 +119,8 @@ class Loader {
                     editor.putString(type.key, json)
                 }
                 DataType.RETRYLIMIT -> {
+                    val tmp = data is Int
+
                     if (data is Int) { editor.putInt(type.key, data) }
                     else             { editor.putInt(type.key, 3) }
                 }

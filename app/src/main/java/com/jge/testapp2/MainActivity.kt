@@ -17,6 +17,7 @@ package com.jge.testapp2
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -39,6 +40,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,6 +55,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var projectionManager: MediaProjectionManager
+
+    private var canUpdate: Boolean = false
 
     private fun requestPermission() {
 
@@ -86,11 +91,13 @@ class MainActivity : AppCompatActivity() {
 
         val buttonWidth = (Resources.getSystem().displayMetrics.widthPixels * 0.8).toInt()
 
-        val updateButton = findViewById<TextView>(R.id.updateButton)
-        updateButton.setOnTouchListener { _, event ->
+        val versionInfoView = findViewById<LinearLayout>(R.id.versionInfoView)
+        versionInfoView.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_UP -> {
-                    onClickNewVersion()
+                    if(canUpdate) {
+                        onClickNewVersion()
+                    }
                     true
                 }
                 else -> false
@@ -99,6 +106,8 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Main).launch() {
             loadData()
+
+            setSettings()
         }
 
         val buttonShowOverlay: Button = findViewById(R.id.buttonShowOverlay)
@@ -118,8 +127,6 @@ class MainActivity : AppCompatActivity() {
 
         overlayBtnLayoutParams.width = buttonWidth
         buttonShowOverlay.layoutParams = overlayBtnLayoutParams
-
-
 
         val buttonSettings: Button = findViewById(R.id.buttonSettings)
         buttonSettings.setOnClickListener {
@@ -159,13 +166,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun onClickNewVersion() {
+    private fun onClickNewVersion() {
         val newVersionTextView = findViewById<TextView>(R.id.newVersionText)
-        val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
-        val updateButton = findViewById<TextView>(R.id.updateButton)
         newVersionTextView.text = " 받아오는 중"
 
-        updateButton.visibility = View.GONE
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 Loader.getOpData()
@@ -174,7 +178,26 @@ class MainActivity : AppCompatActivity() {
             val dvt = findViewById<TextView>(R.id.dataVersionText)
             dvt.text = Loader.newVersion
 
-            newVersionView.visibility = View.GONE
+            newVersionTextView.visibility = View.GONE
+            canUpdate = false
+        }
+    }
+
+    fun setSettings() {
+        val settings = listOf(
+            SettingData(SettingType.RETRYLIMIT, Loader.retryLimit)
+        )
+
+        // RecyclerView 초기화
+        val recyclerView: RecyclerView = findViewById(R.id.settingsRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = SettingsAdapter(this, settings) {
+            when(it.type) {
+                SettingType.RETRYLIMIT -> {
+                    Loader.setRetryData(it.value)
+                }
+                else -> {}
+            }
         }
     }
 
@@ -192,8 +215,9 @@ class MainActivity : AppCompatActivity() {
 
                 if (Loader.currentVersion.compareTo(newVersion) != 0) {
                     Loader.newVersion = newVersion
-                    val newVersionView = findViewById<LinearLayout>(R.id.newVersionView)
+                    val newVersionView = findViewById<TextView>(R.id.newVersionText)
                     newVersionView.visibility = View.VISIBLE
+                    canUpdate = true
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

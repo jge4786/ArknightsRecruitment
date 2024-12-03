@@ -871,7 +871,6 @@ class OverlayService : Service() {
                     }
                 }
 
-                println("hitCnt: $hitCnt ;;; $isLastTry")
                 if (hitCnt == 5 || isLastTry) {
                     onTagClick(resultViews)
 
@@ -901,7 +900,6 @@ class OverlayService : Service() {
         var loopCnt = 0
         val loopLimit = Loader.retryLimit
 
-        println("반복횟수: $loopLimit")
         resultView.background = Drawer.setBorder(Color.parseColor("#FAFAFA"), 12.0f, Color.BLACK, 2)
 
         while (loopCnt < loopLimit) {

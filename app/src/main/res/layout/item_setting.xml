@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:divider="@android:color/darker_gray"
+    android:dividerHeight="0dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- 설정 이름 -->
+    <TextView
+        android:id="@+id/settingName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="설정"
+        android:textSize="14sp"
+        android:layout_marginEnd="16dp"
+        android:layout_gravity="start"
+        android:gravity="start|center_vertical"
+        android:width="70dp" />
+
+    <!-- 설정 값 -->
+    <Spinner
+        android:id="@+id/settingValue"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:gravity="center_vertical"
+        android:spinnerMode="dropdown" />
+
+</LinearLayout>
