@@ -795,7 +795,7 @@ class OverlayService : Service() {
                 var resultViews: MutableList<TextView> = mutableListOf()
 
                 for (block in visionText.textBlocks) {
-                    val blockText = block.text
+                    val blockText = block.text.replace(" ", "")
 
                     var resultTextView: TextView? = null
                     when (blockText) {
