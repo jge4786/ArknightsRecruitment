@@ -24,7 +24,9 @@ data class Item(
 
 enum class DataType(val key: String) {
     OPDATA("opData"),
-    RETRYLIMIT("retryLimit")
+    RETRYLIMIT("retryLimit"),
+    SHOW_FAILED_TOAST("showFailedToastState"),
+    SHOW_FAILED_HIGHLIGHT("showFailedHighlightState")
 }
 
 enum class RarityType {
@@ -46,7 +48,11 @@ class Loader {
         lateinit var currentVersion: String
 
         var language: LanguageType = LanguageType.KOREAN
+
+        /* 메인 설정값 */
         var retryLimit: Int = 3
+        var showFailedToastState: Boolean = false
+        var showFailedHighlightState: Boolean = false
 
         var newVersion: String = "0.0.0"
 
@@ -54,6 +60,12 @@ class Loader {
             retryLimit = newValue
             writeData(DataType.RETRYLIMIT, retryLimit)
         }
+
+        private fun loadSettingData(context: Context) {
+            loadRetryData(context)
+            loadCheckboxData(context)
+        }
+
 
         private fun loadRetryData(context: Context) {
             val retryLimitPref = Pref.shared.preferences.getInt(DataType.RETRYLIMIT.key, -1)
@@ -64,6 +76,21 @@ class Loader {
             } else {
                 retryLimit = retryLimitPref
             }
+        }
+
+        private fun loadCheckboxData(context: Context) {
+            showFailedToastState = Pref.shared.preferences.getBoolean(DataType.SHOW_FAILED_TOAST.key, false)
+            showFailedHighlightState = Pref.shared.preferences.getBoolean(DataType.SHOW_FAILED_HIGHLIGHT.key, false)
+        }
+
+        fun setShowFailedToast(newValue: Boolean) {
+            showFailedToastState = newValue
+            writeData(DataType.SHOW_FAILED_TOAST, showFailedToastState)
+        }
+
+        fun setShowFailedHighlight(newValue: Boolean) {
+            showFailedHighlightState = newValue
+            writeData(DataType.SHOW_FAILED_HIGHLIGHT, showFailedHighlightState)
         }
 
         private fun loadLanguageData(context: Context) {
@@ -77,7 +104,7 @@ class Loader {
         }
 
         private fun loadSettingsData(context: Context) {
-            loadRetryData(context)
+            loadSettingData(context)
             loadLanguageData(context)
 
 
@@ -123,6 +150,12 @@ class Loader {
 
                     if (data is Int) { editor.putInt(type.key, data) }
                     else             { editor.putInt(type.key, 3) }
+                }
+                DataType.SHOW_FAILED_TOAST, DataType.SHOW_FAILED_HIGHLIGHT -> {
+                    val tmp = data is Boolean
+
+                    if (data is Boolean) { editor.putBoolean(type.key, data) }
+                    else                 { editor.putBoolean(type.key, false) }
                 }
             }
             editor.apply()

@@ -30,6 +30,7 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.allViews
@@ -51,6 +52,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 import kotlin.system.exitProcess
+import android.os.Looper;
 
 
 class OverlayService : Service() {
@@ -68,6 +70,7 @@ class OverlayService : Service() {
     private lateinit var virtualDisplay: VirtualDisplay
     private lateinit var imageReader: ImageReader
     private lateinit var handler: Handler
+    private val toastHandler = Handler(Looper.getMainLooper())
 
     private lateinit var tagLinearLayout: LinearLayout
     private lateinit var activeTagLinearLayout: LinearLayout
@@ -201,9 +204,9 @@ class OverlayService : Service() {
     }
 
     /* 인식 결과로 한번에 여러 개의 태그 데이터 들어올 경우 */
-    private fun onTagClick(selectedTextView: List<TextView>) {
+    private fun onTagClick(selectedTextView: List<TextView>, isError: Boolean = false) {
         selectedTextView.forEach {
-            onTagClick(it)
+            onTagClick(it, isError)
         }
 
         val calculatror = Calculatror()
@@ -212,21 +215,21 @@ class OverlayService : Service() {
     }
 
     /* 태그 하나씩 누를 경우 */
-    private fun onTagClick(selectedTextViwe: TextView) {
+    private fun onTagClick(selectedTextViwe: TextView, isError: Boolean = false) {
         val tag = Loader.tagToInt(selectedTextViwe.text.toString())
         val isActive = selectedTag and tag == tag
 
         if (isActive) {
-            getTextView(selectedTextViwe.text.toString(), true)
+            getTextView(selectedTextViwe.text.toString(), true, isError)
             selectedTag -= tag
         } else {
-            getTextView(selectedTextViwe.text.toString(), false)
+            getTextView(selectedTextViwe.text.toString(), false, isError)
             selectedTag += tag
         }
     }
 
     /* 태그 눌렀을 때 숨김 처리 */
-    private fun getTextView(text: String, isActive: Boolean) {
+    private fun getTextView(text: String, isActive: Boolean, isError: Boolean = false) {
         var view: TextView?
         var activeView: TextView?
 
@@ -387,6 +390,14 @@ class OverlayService : Service() {
         } else {
             activeView?.visibility = View.VISIBLE
             view?.visibility = View.GONE
+
+            if(Loader.showFailedHighlightState) {
+                if (isError) {
+                    activeView?.setBackgroundResource(R.drawable.active_tag_error)
+                } else {
+                    activeView?.setBackgroundResource(R.drawable.active_tag)
+                }
+            }
         }
     }
 
@@ -872,7 +883,7 @@ class OverlayService : Service() {
                 }
 
                 if (hitCnt == 5 || isLastTry) {
-                    onTagClick(resultViews)
+                    onTagClick(resultViews, isLastTry && hitCnt < 5 && Loader.showFailedHighlightState)
 
                     setLoading(false)
                     val overlayView1: View = overlayView.findViewById(R.id.overlayView)
@@ -880,6 +891,13 @@ class OverlayService : Service() {
                     resultView.visibility = View.VISIBLE
 
                     recognitionSuccess = true
+                    if (isLastTry && hitCnt < 5) {
+                        if (Loader.showFailedToastState) {
+                            toastHandler.post {
+                                Toast.makeText(applicationContext, "감지된 태그가 5개 미만입니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
 
                 continuation.resume(recognitionSuccess)

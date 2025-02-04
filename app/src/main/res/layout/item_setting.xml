@@ -20,7 +20,7 @@
         android:gravity="start|center_vertical"
         android:width="70dp" />
 
-    <!-- 설정 값 -->
+    <!-- 설정 값 (Spinner 또는 CheckBox) -->
     <Spinner
         android:id="@+id/settingValue"
         android:layout_width="120dp"
@@ -29,4 +29,9 @@
         android:gravity="center_vertical"
         android:spinnerMode="dropdown" />
 
+    <CheckBox
+        android:id="@+id/settingCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 </LinearLayout>

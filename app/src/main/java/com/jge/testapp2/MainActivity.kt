@@ -185,7 +185,9 @@ class MainActivity : AppCompatActivity() {
 
     fun setSettings() {
         val settings = listOf(
-            SettingData(SettingType.RETRYLIMIT, Loader.retryLimit)
+            SettingData(SettingType.RETRYLIMIT, Loader.retryLimit),
+            SettingData(SettingType.SHOW_FAILED_TOAST, Loader.showFailedToastState),
+            SettingData(SettingType.SHOW_FAILED_HIGHLIGHT, Loader.showFailedHighlightState)
         )
 
         // RecyclerView 초기화
@@ -194,7 +196,16 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = SettingsAdapter(this, settings) {
             when(it.type) {
                 SettingType.RETRYLIMIT -> {
-                    Loader.setRetryData(it.value)
+                    val value = it.value as Int
+                    Loader.setRetryData(value)
+                }
+                SettingType.SHOW_FAILED_TOAST -> {
+                    val value = it.value as Boolean
+                    Loader.setShowFailedToast(value)
+                }
+                SettingType.SHOW_FAILED_HIGHLIGHT -> {
+                    val value = it.value as Boolean
+                    Loader.setShowFailedHighlight(value)
                 }
                 else -> {}
             }
