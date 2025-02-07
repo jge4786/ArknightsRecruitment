@@ -1,0 +1,124 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 설정 버튼 (우측 상단) -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/buttonSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="라이브러리"
+        android:background="@drawable/main_button"
+        android:textColor="#000000"
+        android:backgroundTint="@null"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="16dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:id="@+id/settingsLayout">
+
+            <LinearLayout
+                android:id="@+id/dataVersionView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="0dp"
+                android:background="?android:attr/selectableItemBackground">
+                <TextView
+                    android:id="@+id/versionInfoTitleView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="버전 정보"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_gravity="start"
+                    android:gravity="start|center_vertical"
+                    android:width="70dp" />
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/versionInfoView"
+                    android:clickable="true"
+                    android:layout_marginStart="5dp"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/dataVersionText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Loading..."
+                        android:textSize="20dp" />
+
+                    <TextView
+                        android:id="@+id/newVersionText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="새로운 버전이 있습니다."
+                        android:textColor="@android:color/holo_red_light"
+                        android:textSize="10dp"
+                        android:visibility="gone"
+                        android:layout_marginEnd="5dp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+
+
+            <!-- 설정 리스트 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/settingsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/design_default_color_primary_dark"
+                android:layout_marginVertical="20dp"/>
+        </LinearLayout>
+
+        <!-- 시작 버튼 (하단) -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/buttonShowOverlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="시작"
+            android:background="@drawable/main_button"
+            android:textColor="#000000"
+            android:backgroundTint="@null"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/settingsLayout"
+            android:paddingVertical="15dp"/>
+
+        <!-- 개인정보 처리방침 (시작 버튼 하단, marginTop 20dp) -->
+        <TextView
+            android:id="@+id/policyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="개인정보 처리방침"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:layout_below="@id/buttonShowOverlay"
+            android:layout_marginTop="12dp"
+            android:layout_centerHorizontal="true" />
+    </RelativeLayout>
+
+
+</RelativeLayout>
