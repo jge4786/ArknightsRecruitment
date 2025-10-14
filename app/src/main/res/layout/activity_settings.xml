@@ -31,13 +31,6 @@
                     android:text="사용한 라이브러리 "
                     android:textSize="15dp" />
 
-
-<!--                <ImageView-->
-<!--                    android:id="@+id/libraryChevron"-->
-<!--                    android:layout_width="20dp"-->
-<!--                    android:layout_height="20dp"-->
-<!--                    android:background="@drawable/down_chevron" />-->
-
             </LinearLayout>
             <!--라이브러리 리스트-->
             <TableLayout
@@ -45,7 +38,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:stretchColumns="0">
-<!--                android:visibility="gone">-->
 
                 <!-- 첫번째 행 (정보 헤더) -->
                 <TableRow>
@@ -137,89 +129,4 @@
             </TableLayout>
         </LinearLayout>
     </ScrollView>
-
-
-    <!--    <ScrollView-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content">-->
-
-<!--        <LinearLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="vertical">-->
-<!--        &lt;!&ndash; Version Info Section &ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:id="@+id/tvVersionInfo"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="버전 정보"-->
-<!--                android:textSize="16sp"-->
-<!--                android:textColor="#888888"-->
-<!--                android:layout_marginTop="16dp"/>-->
-
-<!--            <LinearLayout-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:clickable="true"-->
-<!--                android:focusable="true"-->
-<!--                android:orientation="horizontal"-->
-<!--                android:onClick="onClickNewVersion">-->
-
-<!--                <TextView-->
-<!--                    android:id="@+id/tvCurrentVersion"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="현재 버전: 1.0.0"-->
-<!--                    android:textSize="14sp"-->
-<!--                    android:layout_marginTop="8dp"-->
-<!--                    android:textColor="#000000"/>-->
-
-<!--                <TextView-->
-<!--                    android:id="@+id/tvNewVersionAlert"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="❗새로운 버전이 있습니다."-->
-<!--                    android:textSize="10sp"-->
-<!--                    android:textColor="#d95623"/>-->
-<!--            </LinearLayout>-->
-
-
-<!--            &lt;!&ndash; General Section &ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:id="@+id/tvGeneral"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="일반"-->
-<!--                android:textSize="16sp"-->
-<!--                android:textColor="#888888"-->
-<!--                android:layout_marginTop="32dp"/>-->
-
-<!--            &lt;!&ndash; Privacy Policy Item &ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:id="@+id/tvPrivacyPolicy"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="개인정보처리방침"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textColor="#000000"-->
-<!--                android:layout_marginTop="8dp"-->
-<!--                android:clickable="true"-->
-<!--                android:focusable="true"-->
-<!--                android:onClick="onPrivacyPolicyClicked"/>-->
-
-<!--            &lt;!&ndash; Used Libraries Item &ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:id="@+id/tvUsedLibraries"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="사용한 라이브러리"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textColor="#000000"-->
-<!--                android:layout_marginTop="8dp"-->
-<!--                android:clickable="true"-->
-<!--                android:focusable="true"-->
-<!--                android:onClick="onUsedLibrariesClicked"/>-->
-
-<!--        </LinearLayout>-->
-<!--    </ScrollView>-->
 </RelativeLayout>

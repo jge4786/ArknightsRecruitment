@@ -67,7 +67,7 @@ class OverlayService : Service() {
     private var NOTI_ID = 1
 
     private lateinit var mediaProjection: MediaProjection
-    private lateinit var virtualDisplay: VirtualDisplay
+    private var virtualDisplay: VirtualDisplay? = null
     private lateinit var imageReader: ImageReader
     private lateinit var handler: Handler
     private val toastHandler = Handler(Looper.getMainLooper())
@@ -154,9 +154,17 @@ class OverlayService : Service() {
         val resultCode = intent?.getIntExtra("resultCode", Activity.RESULT_OK) ?: Activity.RESULT_OK
         val data = intent?.getParcelableExtra<Intent>("data")
         val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
 
-        mediaProjection?.registerCallback(object : MediaProjection.Callback() {
+        val projection = data?.let { projectionManager.getMediaProjection(resultCode, it) }
+        if (projection == null) {
+            Toast.makeText(this, "화면 캡처 권한을 가져올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        mediaProjection = projection
+
+        mediaProjection.registerCallback(object : MediaProjection.Callback() {
             override fun onStop() {
                 // MediaProjection이 중지되었을 때 리소스 해제
                 stopSelf()
@@ -201,6 +209,10 @@ class OverlayService : Service() {
             },
             handler
         )
+
+        if (virtualDisplay == null) {
+            Toast.makeText(this, "VirtualDisplay 생성 실패", Toast.LENGTH_SHORT).show()
+        }
     }
 
     /* 인식 결과로 한번에 여러 개의 태그 데이터 들어올 경우 */
