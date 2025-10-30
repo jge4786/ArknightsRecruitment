@@ -890,6 +890,18 @@ class OverlayService : Service() {
                             resultViews.add(resultTextView)
 
                             hitCnt += 1
+                        } else if (blockText.contains("지운")) { /* 지원 보정 */
+                            resultTextView = linearLayout.findViewById(R.id.wldnjs)
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
+                        } else if (blockText.contains("소횐") || blockText.contains("소흰")) { /* 소환 보정 */
+                            resultTextView = linearLayout.findViewById(R.id.thghks)
+
+                            resultViews.add(resultTextView)
+
+                            hitCnt += 1
                         }
                     }
                 }
