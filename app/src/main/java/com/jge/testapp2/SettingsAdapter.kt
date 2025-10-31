@@ -16,7 +16,8 @@ import androidx.recyclerview.widget.RecyclerView
 enum class SettingType(val title: String) {
     RETRYLIMIT("재시도 횟수"),
     SHOW_FAILED_TOAST("인식 실패 토스트"),
-    SHOW_FAILED_HIGHLIGHT("인식 실패 강조 효과")
+    SHOW_FAILED_HIGHLIGHT("인식 실패 강조 효과"),
+    LANGUAGE("언어 설정")
 }
 
 data class SettingData(val type: SettingType, var value: Any)
@@ -45,6 +46,9 @@ class SettingsAdapter(
             SettingType.SHOW_FAILED_HIGHLIGHT -> {
                 setFailedHighlight(holder, setting)
             }
+            SettingType.LANGUAGE -> {
+                updateLanguage(holder, setting)
+            }
             else -> {}
         }
     }
@@ -72,7 +76,7 @@ class SettingsAdapter(
 
         val spinnerAdapter = ArrayAdapter.createFromResource(
             context,
-            R.array.spinner_values,
+            R.array.retry_spinner_values,
             android.R.layout.simple_spinner_item
         )
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -134,6 +138,47 @@ class SettingsAdapter(
         holder.settingCheckBox?.setOnCheckedChangeListener { _, isChecked ->
             setting.value = isChecked
             onSettingChanged(setting)
+        }
+    }
+
+    private fun updateLanguage(holder: SettingViewHolder, setting: SettingData) {
+        holder.settingName.setOnClickListener {
+            AlertDialog.Builder(context)
+                .setTitle("태그 인식 언어")
+                .setMessage("화면에 보이는 태그를 어떤 언어로 인식할지 결정합니다.")
+                .setPositiveButton("확인") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
+        val spinnerAdapter = ArrayAdapter.createFromResource(
+            context,
+            R.array.language_spinner_values,
+            android.R.layout.simple_spinner_item
+        )
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        holder.settingValue.adapter = spinnerAdapter
+        val currentLanguage = setting.value as LanguageType
+
+        holder.settingValue.setSelection(currentLanguage.spinnerPosition)
+        // 값 변경 처리
+// Int 대신 LanguageType의 값을 비교하고 설정합니다.
+        holder.settingValue.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                // 스피너 position(0, 1, 2, 3...)에 해당하는 LanguageType을 가져옵니다.
+                val selectedLanguage = LanguageType.entries[position] // Kotlin 1.9+
+                // val selectedLanguage = LanguageType.values()[position] // 이전 버전
+
+                // 현재 설정된 LanguageType 값과 스피너에서 선택된 값이 다를 때만 처리
+                if (setting.value != selectedLanguage) {
+                    // setting.value의 타입을 LanguageType으로 변경
+                    setting.value = selectedLanguage
+                    onSettingChanged(setting) // 콜백 호출
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 }

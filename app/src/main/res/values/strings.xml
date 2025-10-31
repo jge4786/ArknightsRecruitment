@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">공채계산기</string>
 
-    <string-array name="spinner_values">
+    <string-array name="retry_spinner_values">
         <item>1</item>
         <item>2</item>
         <item>3</item>
@@ -11,5 +11,12 @@
         <item>7</item>
         <item>8</item>
         <item>9</item>
+    </string-array>
+
+    <string-array name="language_spinner_values">
+        <item>한국어</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>English</item>
     </string-array>
 </resources>

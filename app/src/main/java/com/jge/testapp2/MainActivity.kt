@@ -209,7 +209,8 @@ class MainActivity : AppCompatActivity() {
         val settings = listOf(
             SettingData(SettingType.RETRYLIMIT, Loader.retryLimit),
             SettingData(SettingType.SHOW_FAILED_TOAST, Loader.showFailedToastState),
-            SettingData(SettingType.SHOW_FAILED_HIGHLIGHT, Loader.showFailedHighlightState)
+            SettingData(SettingType.SHOW_FAILED_HIGHLIGHT, Loader.showFailedHighlightState),
+            SettingData(SettingType.LANGUAGE, Loader.language)
         )
 
         // RecyclerView 초기화
@@ -229,6 +230,10 @@ class MainActivity : AppCompatActivity() {
                     val value = it.value as Boolean
                     Loader.setShowFailedHighlight(value)
                 }
+                SettingType.LANGUAGE -> {
+                    val value = it.value as LanguageType
+                    Loader.updateLanguage(value)
+                }
                 else -> {}
             }
         }
@@ -240,8 +245,13 @@ class MainActivity : AppCompatActivity() {
                 val data = withContext(Dispatchers.IO) {
                     Loader.getVersionData()
                 }
+                var newVersion = if (Loader.language != LanguageType.CHINESE) {
+                    data.getString("dataVersion")
+                } else {
+                    data.getString("dataVersionCN")
+                }
 
-                val newVersion = data.getString("dataVersion")
+                var newCorrectionVersion = data.getString("correctionVersion")
 
                 val dvt = findViewById<TextView>(R.id.dataVersionText)
                 dvt.text = Loader.currentVersion
