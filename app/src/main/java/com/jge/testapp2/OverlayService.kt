@@ -1247,101 +1247,36 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
         if (rawText.isBlank()) return currentHitCnt
 
         var newHitCnt = currentHitCnt
-        var blockText = rawText.replace(" ", "")
+        val blockText = rawText.replace(" ", "")
         var resultTextView: TextView? = null
 
-        // ─────────────────────────────
-        // 1️⃣ 1차 언어 보정
-        // ─────────────────────────────
-        if (currentLang == LanguageType.CHINESE && blockText.contains("员")) {
-            Log.w("ㅓㅎㄷ", "중국어 보정 전: $blockText")
-            blockText = blockText.replace("千员", "干员")
-            blockText = blockText.replace("于员", "干员")
-            blockText = blockText.replace("王员", "干员")
-            Log.w("ㅓㅎㄷ", "중국어 보정 후: $blockText")
-        }
-
-        Log.w("ㅓㅎㄷ", "1차: $blockText")
-        // ─────────────────────────────
-        // 2️⃣ Tag ID 직접 매칭 (정확 일치)
-        // ─────────────────────────────
+        // 1. Tag ID 직접 매칭 (정확 일치)
         var tagId = TagStrings.getId(blockText, currentLang)
 
+        // 2. Tag 문자열 기반 매칭 (포함)
+        if (tagId == null) {
+            for (id in 1..29) {
+                val tagText = TagStrings.getString(id, currentLang).replace(" ", "")
+                if (blockText.contains(tagText, ignoreCase = true) && TAG_VIEW_MAP.containsKey(id)) {
+                    tagId = id
+                    break
+                }
+            }
+        }
+
+        // 3. 데이터 기반 보정
+        if (tagId == null) {
+            tagId = CorrectionService.applyCorrection(blockText, currentLang)
+        }
+
+        // 4. 결과 처리
         if (tagId != null) {
-            // tagId가 바로 매칭된 경우
             val normalViewId = TAG_VIEW_MAP[tagId]?.second
             if (normalViewId != null) {
                 resultTextView = linearLayout.findViewById(normalViewId)
             }
         }
 
-        // ─────────────────────────────
-        // 4️⃣ 커스텀 보정
-        // ─────────────────────────────
-        if (resultTextView == null) {
-            if (currentLang == LanguageType.KOREAN) {
-                resultTextView = when {
-                    blockText.contains("고급") -> linearLayout.findViewById(R.id.rhxmrco) // 고특채
-                    blockText.contains("가드") && blockText.length > 2 -> linearLayout.findViewById(R.id.qodrkem) // 뱅가드
-                    blockText.contains("신임") || blockText.contains("신업") || blockText.contains("신엄") -> linearLayout.findViewById(R.id.tlsdlq) // 신입
-                    blockText.contains("속") && blockText.length > 3 -> linearLayout.findViewById(R.id.zhothrqnghkf) // 쾌속부활
-                    blockText.contains("캐스티") -> linearLayout.findViewById(R.id.zotmxj) // 캐스터
-                    blockText.contains("지운") || blockText.contains("지을") || blockText.contains("지유") -> linearLayout.findViewById(R.id.wldnjs) // 지원
-                    blockText.contains("소횐") || blockText.contains("소흰") -> linearLayout.findViewById(R.id.thghks) // 소환
-                    else -> null
-                }
-            } else if (currentLang == LanguageType.CHINESE) {
-                resultTextView = when {
-                    blockText.contains("高") && blockText.length > 5 -> linearLayout.findViewById(R.id.rhxmrco)
-                    blockText.contains("重") -> linearLayout.findViewById(R.id.elvpsej)
-                    blockText.contains("医") -> linearLayout.findViewById(R.id.apelr)
-                    blockText.contains("召") -> linearLayout.findViewById(R.id.thghks)
-                    blockText.contains("狙") -> linearLayout.findViewById(R.id.tmskdlvj)
-                    blockText.contains("场") -> linearLayout.findViewById(R.id.wpdjgud)
-                    else -> null
-                }
-            } else if (currentLang == LanguageType.JAPANESE) {
-                resultTextView = when {
-                    blockText.contains("重") -> linearLayout.findViewById(R.id.elvpsej)
-                    blockText.contains("医") -> linearLayout.findViewById(R.id.apelr)
-                    blockText.contains("エリ") && blockText.length >= 5 -> linearLayout.findViewById(R.id.rhxmrco)
-                    blockText.contains("エリ") && blockText.length < 5 -> linearLayout.findViewById(R.id.xmrco)
-                    blockText.contains("召") -> linearLayout.findViewById(R.id.thghks)
-                    blockText.contains("狙") -> linearLayout.findViewById(R.id.tmskdlvj)
-                    blockText.contains("制") && blockText.length > 2 -> linearLayout.findViewById(R.id.rkdwpdlehd)
-                    blockText.contains("制") && blockText.length == 2 -> linearLayout.findViewById(R.id.wpdjgud)
-                    else -> null
-                }
-            }
-        }
-
-        // ─────────────────────────────
-        // 3️⃣ Tag 문자열 기반 매칭 (정확 → 포함 순서)
-        // ─────────────────────────────
-        if (resultTextView == null) {
-            var foundTagId: Int? = null
-
-            // 2차: 부분 포함
-            if (foundTagId == null) {
-                for (id in 1..29) {
-                    val tagText = TagStrings.getString(id, currentLang).replace(" ", "")
-                    if (blockText.contains(tagText, ignoreCase = true) && TAG_VIEW_MAP.containsKey(id)) {
-                        foundTagId = id
-                        break
-                    }
-                }
-            }
-
-            if (foundTagId != null) {
-                val normalViewId = TAG_VIEW_MAP[foundTagId]?.second
-                if (normalViewId != null) {
-                    resultTextView = linearLayout.findViewById(normalViewId)
-                }
-            }
-        }
-        // ─────────────────────────────
-        // 5️⃣ 결과 등록 및 중복 방지
-        // ─────────────────────────────
         resultTextView?.let { view ->
             if (resultViews.none { it.id == view.id }) {
                 resultViews.add(view)

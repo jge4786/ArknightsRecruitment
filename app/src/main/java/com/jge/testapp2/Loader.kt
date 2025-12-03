@@ -22,6 +22,29 @@ data class Item(
     val rarity: String
 )
 
+data class CorrectionFile(
+    val correction: List<LanguageCorrections>,
+    val version: String
+)
+
+data class LanguageCorrections(
+    val language: String,
+    val rules: List<CorrectionRule>
+)
+
+data class CorrectionRule(
+    val keyword: String,
+    val tagId: Int,
+    val conditions: CorrectionConditions? = null
+)
+
+data class CorrectionConditions(
+    val length_greater_than: Int? = null,
+    val length_less_than: Int? = null,
+    val length_equals: Int? = null
+)
+
+
 enum class DataType(val key: String) {
     OPDATA("opData"),
     RETRYLIMIT("retryLimit"),
@@ -37,11 +60,11 @@ enum class RarityType {
     FIVE,
     SIX
 }
-enum class LanguageType(val key: String) {
-    KOREAN("opData"),
-    CHINESE("opDataCN"),
-    JAPANESE("opDataJP"),
-    ENGLISH("opDataEN");
+enum class LanguageType(val key: String, val languageKey: String) {
+    KOREAN("opData", "korean"),
+    CHINESE("opDataCN", "chinese"),
+    JAPANESE("opDataJP", "japanese"),
+    ENGLISH("opDataEN", "english");
 
     val spinnerPosition: Int
         get() = this.ordinal
@@ -61,7 +84,7 @@ class Loader {
 
         var newVersion: String = "0.0.0"
 
-        var correctionData: Map<String, List<CorrectionRule>>? = null
+        var correctionData: CorrectionFile? = null
         var newCorrectionVersion: String = "1"
 
         fun setRetryData(newValue: Int) {
@@ -140,16 +163,19 @@ class Loader {
         fun loadData(context: Context) {
             loadLanguageData(context)
             loadSettingsData(context)
+            loadCorrectionData(context)
         }
 
-        private fun writeData(type: DataType, data: Any) {
+        private fun writeData(type: DataType, data: Any?) {
             val editor = Pref.shared.preferences.edit()
 
             when (type) {
                 DataType.OPDATA,
                 DataType.CORRECTION_DATA -> {
-                    val json = GsonBuilder().create().toJson(data)
-                    editor.putString(type.key, json)
+                    if (data != null) {
+                        val json = GsonBuilder().create().toJson(data)
+                        editor.putString(type.key, json)
+                    }
                 }
                 DataType.RETRYLIMIT -> {
                     val tmp = data is Int
@@ -172,42 +198,74 @@ class Loader {
             editor.apply()
         }
 
-        private fun loadDefaultVersion(context: Context) {
-            val inputStream = context.assets.open("defaultVersion.json")
-            val reader = BufferedReader(InputStreamReader(inputStream))
-            val stringBuilder = StringBuilder()
-            var line: String? = reader.readLine()
-            while (line != null) {
-                stringBuilder.append(line)
-                line = reader.readLine()
-            }
-            reader.close()
-            inputStream.close()
+        private fun loadCorrectionData(context: Context) {
+            val rawPref = Pref.shared.preferences.getString(DataType.CORRECTION_DATA.key, null)
 
-            val jsonString = stringBuilder.toString()
-            val jsonObject = JSONObject(jsonString)
-            currentVersion = if (language != LanguageType.CHINESE) {
-                jsonObject.getString("dataVersion")
+            if (rawPref != null) {
+                try {
+                    correctionData = GsonBuilder().create().fromJson(
+                        rawPref, object : TypeToken<CorrectionFile>() {}.type
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // 파싱 실패 시 기본값으로 대체
+                    loadDefaultCorrectionData(context)
+                }
             } else {
-                jsonObject.getString("dataVersionCN")
+                loadDefaultCorrectionData(context)
             }
-            val editor = Pref.shared.preferences.edit()
-            editor.putString("opVersion", currentVersion)
-            editor.apply()
+        }
+
+        private fun loadDefaultCorrectionData(context: Context) {
+            val jsonString = readAssetFile(context, "correction.json")
+            if (jsonString != null) {
+                correctionData = Gson().fromJson(jsonString, CorrectionFile::class.java)
+                writeData(DataType.CORRECTION_DATA, correctionData)
+                val editor = Pref.shared.preferences.edit()
+                editor.putString("correctionVersion", correctionData?.version ?: "1")
+                editor.apply()
+            }
+        }
+
+
+        private fun loadDefaultVersion(context: Context) {
+            val jsonString = readAssetFile(context, "defaultVersion.json")
+            if (jsonString != null) {
+                val jsonObject = JSONObject(jsonString)
+                currentVersion = if (language != LanguageType.CHINESE) {
+                    jsonObject.getString("dataVersion")
+                } else {
+                    jsonObject.getString("dataVersionCN")
+                }
+                val editor = Pref.shared.preferences.edit()
+                editor.putString("opVersion", currentVersion)
+                editor.apply()
+            }
+        }
+
+        fun readAssetFile(context: Context, fileName: String): String? {
+            return try {
+                val inputStream = context.assets.open(fileName)
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                val stringBuilder = StringBuilder()
+                var line: String?
+                while (reader.readLine().also { line = it } != null) {
+                    stringBuilder.append(line)
+                }
+                reader.close()
+                inputStream.close()
+                stringBuilder.toString()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
+            }
         }
 
 
         fun readJsonFile(context: Context, fileName: String): List<Item> {
-            val inputStream = context.assets.open(fileName)
-            val reader = BufferedReader(InputStreamReader(inputStream))
-            val stringBuilder = StringBuilder()
-            var line: String? = reader.readLine()
-            while (line != null) {
-                stringBuilder.append(line)
-                line = reader.readLine()
-            }
+            val jsonString = readAssetFile(context, fileName)
             val listType = object : TypeToken<List<Item>>() {}.type
-            return Gson().fromJson(stringBuilder.toString(), listType)
+            return Gson().fromJson(jsonString, listType)
         }
 
         fun tagToArray(tag: Int): List<String> {
@@ -293,8 +351,8 @@ class Loader {
                 connection.disconnect()
             }
 
-            data = GsonBuilder().create().fromJson(
-                resultData, object: TypeToken<ArrayList<CorrectionRule>>(){}.type
+            correctionData = GsonBuilder().create().fromJson(
+                resultData, object: TypeToken<CorrectionFile>(){}.type
             )
 
 
@@ -303,7 +361,7 @@ class Loader {
             editor.putString(DataType.CORRECTION_DATA.key, resultData)
 
             try {
-                editor.putString("correctionVersion", newVersion)
+                editor.putString("correctionVersion", correctionData?.version)
                 editor.apply()
             } catch (e: Exception) {
                 e.printStackTrace()
