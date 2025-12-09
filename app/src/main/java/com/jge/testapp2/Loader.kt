@@ -32,12 +32,6 @@ data class LanguageCorrections(
     val rules: List<CorrectionRule>
 )
 
-data class CorrectionRule(
-    val keyword: String,
-    val tagId: Int,
-    val conditions: CorrectionConditions? = null
-)
-
 data class CorrectionConditions(
     val length_greater_than: Int? = null,
     val length_less_than: Int? = null,
