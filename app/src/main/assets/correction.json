@@ -1,29 +1,33 @@
 {
-  "KOREAN": [
-    { "keywords": ["고급"], "tag": 1 },
-    { "keywords": ["가드"], "tag": 2, "minLength": 3 },
-    { "keywords": ["신임", "신업", "신엄"], "tag": 3 },
-    { "keywords": ["속"], "tag": 4, "minLength": 4 },
-    { "keywords": ["캐스티"], "tag": 5 },
-    { "keywords": ["지운", "지을", "지유"], "tag": 6 },
-    { "keywords": ["소횐", "소흰"], "tag": 7 }
-  ],
-  "CHINESE": [
-    { "keywords": ["高"], "tag": 1, "minLength": 6 },
-    { "keywords": ["重"], "tag": 8 },
-    { "keywords": ["医"], "tag": 9 },
-    { "keywords": ["召"], "tag": 7 },
-    { "keywords": ["狙"], "tag": 10 },
-    { "keywords": ["场"], "tag": 11 }
-  ],
-  "JAPANESE": [
-    { "keywords": ["重"], "tag": 8 },
-    { "keywords": ["医"], "tag": 9 },
-    { "keywords": ["エリ"], "tag": 1, "minLength": 5 },
-    { "keywords": ["エリ"], "tag": 12, "maxLength": 4 },
-    { "keywords": ["召"], "tag": 7 },
-    { "keywords": ["狙"], "tag": 10 },
-    { "keywords": ["制"], "tag": 13, "minLength": 3 },
-    { "keywords": ["制"], "tag": 11, "exactLength": 2 }
-  ]
+  "correction": {
+    "korean": [
+      { "keywords": ["고급"], "tag": 1 },
+      { "keywords": ["가드"], "tag": 2, "minLength": 3 },
+      { "keywords": ["신임", "신업", "신엄"], "tag": 3 },
+      { "keywords": ["속"], "tag": 4, "minLength": 4 },
+      { "keywords": ["캐스티"], "tag": 5 },
+      { "keywords": ["지운", "지을", "지유"], "tag": 6 },
+      { "keywords": ["소횐", "소흰"], "tag": 7 }
+    ],
+    "chinese": [
+      { "keywords": ["高"], "tag": 1, "minLength": 6 },
+      { "keywords": ["重"], "tag": 8 },
+      { "keywords": ["医"], "tag": 9 },
+      { "keywords": ["召"], "tag": 7 },
+      { "keywords": ["狙"], "tag": 10 },
+      { "keywords": ["场"], "tag": 11 }
+    ],
+    "japanese": [
+      { "keywords": ["重"], "tag": 8 },
+      { "keywords": ["医"], "tag": 9 },
+      { "keywords": ["エリ"], "tag": 1, "minLength": 5 },
+      { "keywords": ["エリ"], "tag": 12, "maxLength": 4 },
+      { "keywords": ["召"], "tag": 7 },
+      { "keywords": ["狙"], "tag": 10 },
+      { "keywords": ["制"], "tag": 13, "minLength": 3 },
+      { "keywords": ["制"], "tag": 11, "exactLength": 2 }
+    ],
+    "english": []
+  },
+  "version": "1"
 }

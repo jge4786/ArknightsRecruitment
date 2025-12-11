@@ -3,7 +3,7 @@ package com.jge.testapp2
 import android.util.Log
 object CorrectionService {
     fun applyCorrection(text: String, language: LanguageType): Int? {
-        val rules = Loader.correctionData?.get(language.name) ?: return null
+        val rules = Loader.correctionData?.correction?.get(language.languageKey) ?: return null
 
         for (rule in rules) {
             for (keyword in rule.keywords) {
