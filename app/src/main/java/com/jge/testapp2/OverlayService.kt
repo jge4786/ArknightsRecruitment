@@ -1099,7 +1099,10 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
 
         // 3. 데이터 기반 보정
         if (tagId == null) {
-            tagId = CorrectionService.applyCorrection(blockText, currentLang)
+            val cor = CorrectionService.applyCorrection(blockText, currentLang)
+            if (cor != null) {
+                tagId = cor
+            }
         }
 
         // 4. 결과 처리
