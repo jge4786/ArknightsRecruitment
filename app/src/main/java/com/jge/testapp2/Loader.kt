@@ -23,13 +23,8 @@ data class Item(
 )
 
 data class CorrectionFile(
-    val correction: List<LanguageCorrections>,
+    val correction: Map<String, List<CorrectionRule>>,
     val version: String
-)
-
-data class LanguageCorrections(
-    val language: String,
-    val rules: List<CorrectionRule>
 )
 
 data class CorrectionConditions(
