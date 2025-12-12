@@ -37,6 +37,12 @@ class SettingsActivity : AppCompatActivity() {
 //                else -> false
 //            }
 //        }
+
+        val correctionButton = findViewById<TextView>(R.id.correctionButton)
+        correctionButton.setOnClickListener {
+            val intent = Intent(this, CorrectionActivity::class.java)
+            startActivity(intent)
+        }
     }
 
 //    fun onClickNewVersion(view: View) {

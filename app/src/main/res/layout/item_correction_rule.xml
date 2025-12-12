@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <EditText
+        android:id="@+id/keywordEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="키워드" />
+
+    <EditText
+        android:id="@+id/minLengthEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="최소 길이"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/maxLengthEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="최대 길이"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/exactLengthEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="정확한 길이"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-" />
+</LinearLayout>
