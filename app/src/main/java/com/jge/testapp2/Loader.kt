@@ -27,13 +27,6 @@ data class CorrectionFile(
     val version: String
 )
 
-data class CorrectionConditions(
-    val length_greater_than: Int? = null,
-    val length_less_than: Int? = null,
-    val length_equals: Int? = null
-)
-
-
 enum class DataType(val key: String) {
     OPDATA("opData"),
     RETRYLIMIT("retryLimit"),
@@ -43,12 +36,6 @@ enum class DataType(val key: String) {
     CORRECTION_DATA("correctionData")
 }
 
-enum class RarityType {
-    ONE,
-    FOUR,
-    FIVE,
-    SIX
-}
 enum class LanguageType(val key: String, val languageKey: String) {
     KOREAN("opData", "korean"),
     CHINESE("opDataCN", "chinese"),

@@ -22,13 +22,11 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.DisplayMetrics
 import android.util.Log
-import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
@@ -56,7 +54,6 @@ import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 import kotlin.system.exitProcess
 import android.os.Looper;
-import kotlin.reflect.KMutableProperty0
 
 
 class OverlayService : Service() {
@@ -387,19 +384,6 @@ class OverlayService : Service() {
         makeList(calculatror.getResultData(selectedTag))
     }
 
-//    /* 태그 하나씩 누를 경우 */
-//    private fun onTagClick(selectedTextViwe: TextView, isError: Boolean = false) {
-//        val tag = Loader.tagToInt(selectedTextViwe.text.toString())
-//        val isActive = selectedTag and tag == tag
-//
-//        if (isActive) {
-//            getTextView(selectedTextViwe.text.toString(), true, isError)
-//            selectedTag -= tag
-//        } else {
-//            getTextView(selectedTextViwe.text.toString(), false, isError)
-//            selectedTag += tag
-//        }
-//    }
     /* 태그 하나씩 누를 경우 */
     private fun onTagClick(selectedTextViwe: TextView, isError: Boolean = false) {
         // 1. TextView의 tag 속성에 저장된 태그 ID (String)를 가져와 Int로 변환
@@ -427,158 +411,7 @@ class OverlayService : Service() {
             selectedTag += tagBitValue
         }
     }
-    /* 태그 눌렀을 때 숨김 처리 */
-//    private fun getTextView(text: String, isActive: Boolean, isError: Boolean = false) {
-//        var view: TextView?
-//        var activeView: TextView?
-//
-//        // Loader 객체에 LanguageType이 저장되어 있다고 가정
-//        val currentLang = Loader.language
-//
-//        // 입력된 텍스트와 현재 언어를 사용하여 태그 ID를 찾습니다.
-//        // text에 공백이 포함되어 있다면 먼저 제거해야 합니다.
-//        val tagText = text.replace(" ", "")
-//        val tagId = TagStrings.getId(tagText, currentLang)
-//
-//        when (tagId) {
-//            17 -> { // 신입 (Starter)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activetlsdlq)
-//                view = tagLinearLayout.findViewById(R.id.tlsdlq)
-//            }
-//            14 -> { // 특별채용 (Senior Operator)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activexmrco)
-//                view = tagLinearLayout.findViewById(R.id.xmrco)
-//            }
-//            11 -> { // 고급특별채용 (Top Operator)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activerhxmrco)
-//                view = tagLinearLayout.findViewById(R.id.rhxmrco)
-//            }
-//            9 -> { // 근거리 (Melee)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activermsrjfl)
-//                view = tagLinearLayout.findViewById(R.id.rmsrjfl)
-//            }
-//            10 -> { // 원거리 (Ranged)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activednjsrjfl)
-//                view = tagLinearLayout.findViewById(R.id.dnjsrjfl)
-//            }
-//            1 -> { // 가드 (Guard)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activerkem)
-//                view = tagLinearLayout.findViewById(R.id.rkem)
-//            }
-//            3 -> { // 디펜더 (Defender)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeelvpsej)
-//                view = tagLinearLayout.findViewById(R.id.elvpsej)
-//            }
-//            4 -> { // 메딕 (Medic)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeapelr)
-//                view = tagLinearLayout.findViewById(R.id.apelr)
-//            }
-//            8 -> { // 뱅가드 (Vanguard)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeqodrkem)
-//                view = tagLinearLayout.findViewById(R.id.qodrkem)
-//            }
-//            5 -> { // 서포터 (Supporter)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activetjvhxj)
-//                view = tagLinearLayout.findViewById(R.id.tjvhxj)
-//            }
-//            2 -> { // 스나이퍼 (Sniper)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activetmskdlvj)
-//                view = tagLinearLayout.findViewById(R.id.tmskdlvj)
-//            }
-//            7 -> { // 스페셜리스트 (Specialist)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activetmvptuffltmxm)
-//                view = tagLinearLayout.findViewById(R.id.tmvptuffltmxm)
-//            }
-//            6 -> { // 캐스터 (Caster)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activezotmxj)
-//                view = tagLinearLayout.findViewById(R.id.zotmxj)
-//            }
-//            23 -> { // 감속 (Slow)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activerkathr)
-//                view = tagLinearLayout.findViewById(R.id.rkathr)
-//            }
-//            26 -> { // 강제이동 (Shift)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activerkdwpdlehd)
-//                view = tagLinearLayout.findViewById(R.id.rkdwpdlehd)
-//            }
-//            13 -> { // 누커 (Nuker)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activesnzj)
-//                view = tagLinearLayout.findViewById(R.id.snzj)
-//            }
-//            24 -> { // 디버프 (Debuff)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeelqjvm)
-//                view = tagLinearLayout.findViewById(R.id.elqjvm)
-//            }
-//            19 -> { // 딜러 (DPS)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeelffj)
-//                view = tagLinearLayout.findViewById(R.id.elffj)
-//            }
-//            28 -> { // 로봇 (Robot)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activefhqht)
-//                view = tagLinearLayout.findViewById(R.id.fhqht)
-//            }
-//            22 -> { // 방어형 (Defense)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeqkddjgud)
-//                view = tagLinearLayout.findViewById(R.id.qkddjgud)
-//            }
-//            21 -> { // 범위공격 (AoE)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeqjadnlrhdrur)
-//                view = tagLinearLayout.findViewById(R.id.qjadnlrhdrur)
-//            }
-//            20 -> { // 생존형 (Survival)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activetodwhs)
-//                view = tagLinearLayout.findViewById(R.id.todwhs)
-//            }
-//            27 -> { // 소환 (Summon)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activethghks)
-//                view = tagLinearLayout.findViewById(R.id.thghks)
-//            }
-//            12 -> { // 제어형 (Crowd-Control)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activewpdjgud)
-//                view = tagLinearLayout.findViewById(R.id.wpdjgud)
-//            }
-//            16 -> { // 지원 (Support)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activewldnjs)
-//                view = tagLinearLayout.findViewById(R.id.wldnjs)
-//            }
-//            18 -> { // 코스트+ (DP-Recovery)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activezhtmxm)
-//                view = tagLinearLayout.findViewById(R.id.zhtmxm)
-//            }
-//            25 -> { // 쾌속부활 (Fast-Redeploy)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activezhothrqnghkf)
-//                view = tagLinearLayout.findViewById(R.id.zhothrqnghkf)
-//            }
-//            15 -> { // 힐링 (Healing)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activeglffld)
-//                view = tagLinearLayout.findViewById(R.id.glffld)
-//            }
-//            29 -> { // 원소 (Elemental)
-//                activeView = activeTagLinearLayout.findViewById(R.id.activednjsth)
-//                view = tagLinearLayout.findViewById(R.id.dnjsth)
-//            }
-//            else -> {
-//                activeView = null
-//                view = null
-//            }
-//        }
-//
-//        if (isActive) {
-//            activeView?.visibility = View.GONE
-//            view?.visibility = View.VISIBLE
-//        } else {
-//            activeView?.visibility = View.VISIBLE
-//            view?.visibility = View.GONE
-//
-//            if(Loader.showFailedHighlightState) {
-//                if (isError) {
-//                    activeView?.setBackgroundResource(R.drawable.active_tag_error)
-//                } else {
-//                    activeView?.setBackgroundResource(R.drawable.active_tag)
-//                }
-//            }
-//        }
-//    }
+
     private fun getTextView(tagId: Int, isActive: Boolean, isError: Boolean = false) {
         // 1. tagId를 사용하여 Map에서 뷰 ID 쌍을 찾습니다.
         val viewIds = TAG_VIEW_MAP[tagId] ?: return
@@ -1087,7 +920,7 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
         var tagId = TagStrings.getId(blockText, currentLang)
 
         // 2. Tag 문자열 기반 매칭 (포함)
-        if (tagId == null) {
+        if (tagId == null || tagId < 0) {
             for (id in 1..29) {
                 val tagText = TagStrings.getString(id, currentLang).replace(" ", "")
                 if (blockText.contains(tagText, ignoreCase = true) && TAG_VIEW_MAP.containsKey(id)) {
@@ -1098,7 +931,7 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
         }
 
         // 3. 데이터 기반 보정
-        if (tagId == null) {
+        if (tagId == null || tagId < 0) {
             val cor = CorrectionService.applyCorrection(blockText, currentLang)
             if (cor != null) {
                 tagId = cor
@@ -1106,7 +939,7 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
         }
 
         // 4. 결과 처리
-        if (tagId != null) {
+        if (tagId != null || tagId < 0) {
             val normalViewId = TAG_VIEW_MAP[tagId]?.second
             if (normalViewId != null) {
                 resultTextView = linearLayout.findViewById(normalViewId)
