@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.util.UUID
 
 class CorrectionAdapter(
     private val context: Context,
@@ -53,7 +54,7 @@ class CorrectionAdapter(
             ruleAdapters[tag] = ruleAdapter
 
             addButton.setOnClickListener {
-                val newRule = CorrectionRule(keywords = listOf(""), tag = tag.toInt())
+                val newRule = CorrectionRule(id = UUID.randomUUID().toString(), keywords = listOf(""), tag = tag.toInt())
                 rules.add(newRule)
                 ruleAdapter.notifyItemInserted(rules.size - 1)
             }
