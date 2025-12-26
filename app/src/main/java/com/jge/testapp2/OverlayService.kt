@@ -939,7 +939,7 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
         }
 
         // 4. 결과 처리
-        if (tagId != null || tagId < 0) {
+        if (tagId != null) {
             val normalViewId = TAG_VIEW_MAP[tagId]?.second
             if (normalViewId != null) {
                 resultTextView = linearLayout.findViewById(normalViewId)
