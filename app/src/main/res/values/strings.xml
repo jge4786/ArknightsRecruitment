@@ -19,4 +19,5 @@
         <item>日本語</item>
         <item>English</item>
     </string-array>
+    <string name="title_activity_correction_compose">CorrectionActivityCompose</string>
 </resources>
