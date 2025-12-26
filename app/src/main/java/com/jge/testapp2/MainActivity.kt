@@ -155,6 +155,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
+
+        val correctionButton = findViewById<TextView>(R.id.correctionButton)
+        correctionButton.setOnClickListener {
+            val intent = Intent(this, CorrectionActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -1084,7 +1084,7 @@ private suspend fun recognizeImage(image: InputImage, recognizer: TextRecognizer
         var resultTextView: TextView? = null
 
         // 1. Tag ID 직접 매칭 (정확 일치)
-        var tagId = TagStrings.getId(blockText, currentLang)
+        var tagId: Int? = TagStrings.getId(blockText, currentLang)
 
         // 2. Tag 문자열 기반 매칭 (포함)
         if (tagId == null) {

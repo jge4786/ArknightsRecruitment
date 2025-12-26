@@ -17,6 +17,19 @@
         android:layout_alignParentTop="true"
         android:layout_margin="16dp" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/correctionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="보정데이터"
+        android:background="@drawable/main_button"
+        android:textColor="#000000"
+        android:backgroundTint="@null"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/buttonSettings"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp" />
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
